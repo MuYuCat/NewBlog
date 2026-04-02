@@ -1,0 +1,72 @@
+// Prisma 配置文件
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. 用户体系
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  email     String?  @unique
+  avatar    String?
+  role      String   @default("USER") // ADMIN, USER
+  status    Int      @default(1)      // 1: 正常, 0: 禁用
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  docs      Doc[]
+  bookmarks Bookmark[]
+}
+
+// 2. 游戏轨迹 (Game Hub)
+model Game {
+  id          Int      @id @default(autoincrement())
+  platform    String   // STEAM, PSN
+  platformId  String   // 外部平台的游戏 ID
+  title       String
+  coverUrl    String?
+  playTime    Int      @default(0)    // 游玩分钟数
+  achieved    Int      @default(0)    // 已达成成就数
+  total       Int      @default(0)    // 总成就数
+  lastPlayed  DateTime?
+  syncAt      DateTime @default(now())
+
+  @@unique([platform, platformId])
+}
+
+// 3. 知识智库 (CMS)
+model Doc {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.LongText
+  summary   String?  @db.Text
+  parentId  Int?     // 支持树状目录
+  parent    Doc?     @relation("DocTree", fields: [parentId], references: [id])
+  children  Doc[]    @relation("DocTree")
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  status    Int      @default(1) // 1: 发布, 0: 草稿
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 4. 资源宝库 (Resource Hub)
+model Bookmark {
+  id          Int      @id @default(autoincrement())
+  url         String   @unique
+  title       String
+  description String?  @db.Text
+  coverUrl    String?
+  categoryId  Int?
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

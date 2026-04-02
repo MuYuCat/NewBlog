@@ -1,0 +1,41 @@
+{
+  "name": "NewBlog",
+  "version": "1.0.0",
+  "description": "Enterprise Blog System Monorepo",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "dev": "concurrently -n \"API,WEB,ADMIN\" -c \"cyan,green,yellow\" \"pnpm run dev:api\" \"pnpm run dev:web\" \"pnpm run dev:admin\"",
+    "dev:all": "concurrently -n \"API,WEB,ADMIN,MOBILE\" -c \"cyan,green,yellow,magenta\" \"pnpm run dev:api\" \"pnpm run dev:web\" \"pnpm run dev:admin\" \"pnpm run dev:mobile\"",
+    "dev:api": "pnpm --filter blogApi start:dev",
+    "dev:web": "pnpm --filter blogWeb dev",
+    "dev:admin": "pnpm --filter blogAdmin dev",
+    "dev:mobile": "pnpm --filter blogMobile dev:mp-weixin",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,vue,scss,md}\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx,js,jsx,vue}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "**/*.{scss,md,json}": [
+      "prettier --write"
+    ]
+  },
+  "packageManager": "pnpm@10.33.0",
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-angular": "^20.5.0",
+    "@eslint/js": "^9.39.4",
+    "concurrently": "^9.2.1",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.1"
+  }
+}

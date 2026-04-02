@@ -1,0 +1,19 @@
+{
+  "name": "@newblog/validation",
+  "version": "1.0.0",
+  "description": "Shared Zod schemas for NewBlog project",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
+}
