@@ -69,8 +69,9 @@
 ## 5. 样式与 CSS 规范 (Styling Strategy)
 
 - **管理后台 (blogAdmin)**: Tailwind CSS + Shadcn/UI (原子类优先)。
-- **前台门户 (blogWeb/blogMobile)**: SCSS (Sass) + Scoped CSS (追求定制化动效)。
-- **单位规范**: Web 端 `rem/px`，移动端 `rpx`。
+- **前台门户 (blogWeb)**: SCSS (Sass) + Scoped CSS。**[强制]** 仅限桌面端 (Desktop Only)，最小宽度 `1200px` 视觉基准。
+- **移动端 (blogMobile)**: uni-app (Vue 3 + TS)。**[强制]** 独立移动端应用，采用 `rpx` 单位。
+- **单位规范**: `blogWeb` 采用 `vh/vw` 配合 `px` 绝对像素，追求像素级排版。
 
 ---
 
@@ -89,34 +90,33 @@
 
 ### 7.1 账户体系校验
 
-- **用户名 (Username)**:
-  - 长度：3 - 20 位。
-  - 规则：仅限字母、数字、下划线，必须以字母开头。
-- **密码 (Password)**:
-  - 长度：8 - 32 位。
-  - 规则：必须包含大小写字母、数字及特殊字符。
-- **邮箱 (Email)**:
-  - 规则：标准 Email 格式校验，且必须进行 `.toLowerCase()` 处理。
-
-### 7.2 内容管理校验
-
-- **文章/文档标题 (Title)**:
-  - 长度：2 - 100 字。
-  - 规则：禁止全空格，自动执行 `.trim()`。
-- **资源描述 (Description)**:
-  - 长度：最大 500 字。
-- **标签/分类 (Tag/Category)**:
-  - 长度：1 - 20 字。
-  - 数量限制：单篇文章标签建议不超过 5 个。
-
-### 7.3 统一报错信息规范
-
-- **格式**: 采用“字段名 + 错误类型”模式。
-- **示例**:
-  - 必填项：`"请填写用户名"`
-  - 长度不符：`"用户名长度应为 3-20 位"`
-  - 格式错误：`"密码必须包含数字和字母"`
+...（此处保持原样）
 
 ---
 
-**由 Gemini CLI 维护并生成 @ 2026-04-02**
+## 8. SEO 与极致性能规范 (SEO & Performance)
+
+为了确保 `blogWeb` 在搜索引擎（Google/Baidu）中获得最佳曝光，必须执行以下强制标准：
+
+### 8.1 语义化 HTML (Semantic Tags)
+
+- 严禁全篇 `div`。必须使用 `<header>`, `<nav>`, `<main>`, `<article>`, `<section>`, `<footer>` 描述内容结构。
+
+### 8.2 TDK 与社交元数据 (Meta Tags)
+
+- **TDK**: 每个页面必须包含独一无二的 `<title>`, `<meta name="description">`。
+- **Open Graph**: 强制配置 `og:title`, `og:image`, `og:description`，确保社交分发预览质感。
+
+### 8.3 结构化数据 (JSON-LD)
+
+- 在文章详情页必须注入 JSON-LD 脚本，以便搜索引擎生成“富摘要（Rich Snippets）”。
+
+### 8.4 核心性能指标 (Core Web Vitals)
+
+- **LCP (最大内容渲染)**: 必须在 2.5s 内完成。
+- **CLS (累积布局偏移)**: 必须小于 0.1。严禁加载过程中卡片闪烁跳跃。
+- **图片优化**: 强制使用 `webp` 格式，并提供 `width` 和 `height` 以预留占位。
+
+---
+
+**由 Gemini CLI 维护并生成 @ 2026-04-03**

@@ -1,0 +1,180 @@
+---
+// Header.astro - SCSS 规范重构版
+import Navbar from './Navbar.vue';
+import HeaderActions from './HeaderActions.vue';
+---
+<header id="main-header" class="main-header" transition:persist>
+  <div id="scroll-progress" class="scroll-progress"></div>
+  
+  <div class="header-container">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="/" class="logo">
+          MuYuCat
+        </a>
+      </div>
+      
+      <div class="header-middle">
+        <Navbar client:load />
+      </div>
+
+      <div class="header-right">
+        <HeaderActions client:load />
+      </div>
+    </div>
+  </div>
+</header>
+
+<style lang="scss">
+.main-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background 0.3s, border-color 0.3s;
+
+  // 初始状态 JS 控制
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+
+  :global(.dark) & {
+    background: rgba(28, 28, 30, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .scroll-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: #1d1d1f;
+    width: 0;
+    z-index: 101;
+
+    :global(.dark) & {
+      background: var(--text-h);
+    }
+  }
+
+  .header-container {
+    width: 100%;
+    display: flex;
+    justify-content: center; // 确保内部真正居中
+  }
+
+  .header-inner {
+    width: 100%;
+    max-width: 1300px;
+    height: 64px; // 显式高度
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    box-sizing: border-box;
+
+    .header-left {
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    .header-middle {
+      display: flex;
+      justify-content: center;
+    }
+
+    .header-right {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      color: var(--text-h);
+      text-decoration: none;
+      transition: opacity 0.3s, color 0.3s;
+      white-space: nowrap;
+      
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+  }
+}
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  let currentTriggers: ScrollTrigger[] = [];
+
+  const cleanupTriggers = () => {
+    currentTriggers.forEach(t => t.kill());
+    currentTriggers = [];
+  };
+
+  const initHeaderLogic = () => {
+    const header = document.getElementById('main-header');
+    const progressBar = document.getElementById('scroll-progress');
+    if (!header) return;
+
+    cleanupTriggers();
+
+    const isHomePage = window.location.pathname === '/' || window.location.pathname.endsWith('/index.html');
+
+    const showHeader = () => gsap.to(header, { y: '0%', opacity: 1, duration: 0.5, ease: 'expo.out', pointerEvents: 'auto' });
+    const hideHeader = () => gsap.to(header, { y: '-100%', opacity: 0, duration: 0.5, ease: 'expo.in', pointerEvents: 'none' });
+
+    if (isHomePage) {
+      const heroSection = document.querySelector('.section-full');
+      if (heroSection) {
+        gsap.set(header, { y: '-100%', opacity: 0, pointerEvents: 'none' });
+        const st = ScrollTrigger.create({
+          trigger: heroSection,
+          start: "30% top", // 修改点：滑动到首屏一半即显示
+          onEnter: showHeader,
+          onLeaveBack: hideHeader,
+        });
+        currentTriggers.push(st);
+      }
+    } else {
+      gsap.set(header, { y: '0%', opacity: 1, pointerEvents: 'auto' });
+      const st = ScrollTrigger.create({
+        start: "top top",
+        end: "max",
+        onUpdate: (self) => {
+          if (self.scroll() > 120) {
+            if (self.direction === 1) hideHeader();
+            else showHeader();
+          } else {
+            showHeader();
+          }
+        }
+      });
+      currentTriggers.push(st);
+    }
+
+    if (progressBar) {
+      const stProgress = ScrollTrigger.create({
+        trigger: 'body',
+        start: 'top top',
+        end: 'bottom bottom',
+        onUpdate: (self) => {
+          gsap.set(progressBar, { width: `${self.progress * 100}%` });
+        }
+      });
+      currentTriggers.push(stProgress);
+    }
+  };
+
+  document.addEventListener('astro:page-load', initHeaderLogic);
+</script>

@@ -1,0 +1,40 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../views/index/Hero.vue';
+import BentoGrid from '../views/index/BentoGrid.vue';
+
+// SEO 配置
+const title = "MuYuCat - 个人博客";
+const description = "基于 Astro + Vue 的高质感个人博客。展示游戏轨迹、技术文档与资源收藏。";
+---
+
+<Layout title={title} description={description}>
+  
+  <main class="main-content">
+    <Hero client:load />
+    <Hero client:load />
+    <BentoGrid client:load />
+  </main>
+
+  <!-- 3. JSON-LD 结构化数据 -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "MuYuCat",
+      "url": "https://MuYuCat.com",
+      "jobTitle": "Full Stack Developer",
+      "description": "个人博客"
+    }
+  </script>
+</Layout>
+
+<style>
+  .main-content {
+    background: var(--bg);
+    position: relative;
+    z-index: 1;
+    /* 确保内容区域有足够的最小高度，即使数据未加载 */
+    min-height: 100vh;
+  }
+</style>

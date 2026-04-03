@@ -1,0 +1,49 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ArticleDetail from '../views/article/ArticleDetail.vue';
+
+// 在 Astro 侧尝试预提取 URL 参数
+// 注意：SSG 模式下，这些值仅在构建时生效
+// 实时获取主要依靠 Vue 组件内部的 onMounted 逻辑
+const id = Astro.url.searchParams.get('id');
+console.log('%c [ id ]-9', 'font-size:13px; background:#fa8b03; color:#ffcf47;', id);
+const title = Astro.url.searchParams.get('title');
+console.log('%c [ title ]-11', 'font-size:13px; background:#8d1bab; color:#d15fef;', title);
+---
+
+<Layout title="路由参数解析 - NewBlog">
+  <main class="page-container">
+    <nav class="back-nav">
+      <a href="/">← BACK HOME</a>
+    </nav>
+
+    <!-- 传入 Props，并使用 client:load 激活 Vue 的 JS 逻辑 -->
+    <ArticleDetail 
+      initialId={id} 
+      initialTitle={title} 
+      client:load 
+    />
+  </main>
+</Layout>
+
+<style>
+  .page-container {
+    background: radial-gradient(circle at top right, #111 0%, #fff 100%);
+    min-height: 100vh;
+  }
+
+  .back-nav {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    
+    a {
+      font-size: 0.8rem;
+      color: #666;
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      transition: color 0.3s;
+      &:hover { color: #fff; }
+    }
+  }
+</style>

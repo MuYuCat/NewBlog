@@ -1,0 +1,152 @@
+---
+// Footer.astro - 极简极客版
+---
+<footer class="main-footer">
+  <div class="footer-container">
+    <div class="footer-content">
+      <!-- 左侧：版权 -->
+      <div class="footer-left">
+        <span class="copyright">© 2026 MuYuCat</span>
+      </div>
+
+      <!-- 中间：技术支持 -->
+      <div class="footer-center">
+        <div class="powered-by">
+          <span class="prefix">Powered by</span>
+          <a href="https://astro.build" target="_blank" class="link">Astro</a>
+          <span class="amp">&</span>
+          <a href="https://github.com" target="_blank" class="link geek-link">
+            NewBlog
+            <svg class="geek-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z" fill="currentColor" fill-opacity="0.5"></path>
+              <path d="M12 6L13.5 9.5L17 11L13.5 12.5L12 16L10.5 12.5L7 11L10.5 9.5L12 6Z" fill="currentColor"></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- 右侧：社交与订阅 -->
+      <div class="footer-right">
+        <a href="/feed.xml" aria-label="RSS Feed" class="control-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 11a9 9 0 0 1 9 9"></path>
+            <path d="M4 4a16 16 0 0 1 16 16"></path>
+            <circle cx="5" cy="19" r="1"></circle>
+          </svg>
+        </a>
+        <a href="https://music.163.com" target="_blank" aria-label="Netease Music" class="control-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style lang="scss">
+.main-footer {
+  width: 100%;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 2.5rem 0;
+  transition: background 0.3s, border-color 0.3s;
+
+  .footer-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .footer-content {
+    width: 100%;
+    max-width: 1300px;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+
+    .footer-left {
+      .copyright {
+        font-size: 0.875rem;
+        color: var(--text);
+        opacity: 0.6;
+        font-weight: 500;
+      }
+    }
+
+    .footer-center {
+      .powered-by {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8125rem;
+        color: var(--text);
+        opacity: 0.5;
+
+        .link {
+          color: var(--text-h);
+          text-decoration: none;
+          font-weight: 600;
+          transition: opacity 0.2s;
+          &:hover { opacity: 0.8; }
+        }
+
+        .geek-link {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          color: var(--accent);
+        }
+
+        .amp {
+          font-style: italic;
+          font-family: serif;
+        }
+      }
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      .control-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        color: var(--text);
+        opacity: 0.6;
+        transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        
+        &:hover {
+          background: var(--border);
+          opacity: 1;
+          color: var(--text-h);
+          transform: translateY(-2px);
+        }
+
+        svg {
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+  }
+}
+
+// 移动端简单处理（虽然项目是 Desktop Only，但为了防止容器溢出，做个基础折叠）
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+}
+</style>

@@ -1,0 +1,134 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// SEO 配置
+const title = "关于我 - NewBlog";
+const description = "探索数字、游戏与知识的交集。这里是我的数字实验室。";
+---
+
+<Layout title={title} description={description}>
+  <main class="about-container">
+    <nav class="back-nav">
+      <a href="/">← BACK HOME</a>
+    </nav>
+
+    <article class="content reveal">
+      <header>
+        <span class="tag">WHO AM I</span>
+        <h1>数字游民、开发者与终身学习者</h1>
+      </header>
+      
+      <section class="bio">
+        <p>
+          你好，我是 MuYuCat。目前专注于构建高质感的 Web 体验，并对现代前端架构（如 Astro 孤岛架构）有着深厚的兴趣。
+        </p>
+        <p>
+          除了代码，我还是一个硬核玩家。我热爱在《艾尔登法环》中探索交界地，也在这个博客中记录我的技术思考与资源剪藏。
+        </p>
+      </section>
+
+      <section class="milestones">
+        <span class="tag">MILESTONES</span>
+        <div class="timeline">
+          <div class="item">
+            <span class="year">2026</span>
+            <div class="desc">
+              <h4>NewBlog 立项</h4>
+              <p>采用 Astro + Vue 构建的高性能个人门户正式诞生。</p>
+            </div>
+          </div>
+          <div class="item">
+            <span class="year">2024</span>
+            <div class="desc">
+              <h4>全栈工程师转型</h4>
+              <p>深耕 NestJS 与 React 生态，主导多个企业级数字化项目。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <style lang="scss">
+    .about-container {
+      width: 1200px; // 锁定 PC 容器
+      margin: 0 auto;
+      padding: 120px 20px;
+      min-height: 100vh;
+    }
+
+    .back-nav {
+      margin-bottom: 80px;
+      a {
+        font-size: 0.8rem;
+        color: var(--color-text-dim);
+        text-decoration: none;
+        letter-spacing: 0.2em;
+        transition: color 0.3s;
+        &:hover { color: var(--color-text); }
+      }
+    }
+
+    h1 {
+      font-size: clamp(3rem, 6vh, 4.5rem); // 增加 PC 端视觉冲击
+      font-weight: 900;
+      line-height: 1.1;
+      margin: 24px 0 48px;
+      letter-spacing: -0.03em;
+      color: var(--color-text);
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      color: var(--color-text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      font-weight: 600;
+    }
+
+    .bio p {
+      font-size: 1.25rem; // 增加阅读字号
+      color: var(--color-text-dim);
+      margin-bottom: 32px;
+      line-height: 1.8;
+    }
+
+    .milestones {
+      margin-top: 100px;
+      padding-top: 60px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .timeline {
+      margin-top: 60px;
+    }
+
+    .item {
+      display: flex;
+      gap: 80px;
+      margin-bottom: 60px;
+      
+      .year {
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: #eee; // 亮色系背景下的年分占位
+      }
+
+      h4 { margin: 0 0 12px; color: var(--color-text); font-size: 1.5rem; font-weight: 700; }
+      p { color: var(--color-text-dim); margin: 0; font-size: 1.1rem; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      animation: revealIn 1.2s forwards cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    @keyframes revealIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</Layout>

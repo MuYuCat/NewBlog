@@ -1,114 +1,83 @@
 # 个人门户系统详细需求文档 (Product Requirements Document)
 
-本方案围绕 **基础认证、游戏轨迹、知识智库、资源宝库** 四大核心板块，详细定义了各端（前台、后台、移动端、API）的功能与交互逻辑。
+本方案围绕 **个人展示门户、游戏轨迹、知识智库、资源宝库** 四大核心板块，定义了各端的功能与交互逻辑。
 
 ---
 
-## 0. 基础认证与单点登录 (Auth & SSO)
+## 0. 认证与访问控制 (Auth & Access)
 
-### 0.1 核心认证页面 (前台/后台通用)
+### 0.1 前后台权限分离
 
-- **登录页 (Login)**
-  - **样式**: 简约居中卡片，背景采用动态粒子或毛玻璃效果。
-  - **交互**: 使用 `@newblog/validation` 提供的 `LoginSchema` 进行实时校验。支持账号密码登录、记住我（Persistent Session）。
-- **注册页 (Register)**
-  - **交互**: 包含用户名重复校验、密码强度提示。使用 `RegisterSchema` 校验。
+- **前台门户 (blogWeb)**:
+  - **定位**: 纯展示性质，**无需登录页面**。
+  - **访问**: 全公开，所有内容（除草稿外）均可被访客浏览。
+- **后台管理 (blogAdmin)**:
+  - **定位**: 核心管理端，负责所有内容的增删改查。
+  - **登录页**: 采用简约毛玻璃样式，使用 `@newblog/validation` 提供的 `LoginSchema` 进行校验。
+  - **安全**: 仅支持单管理员账号（ADMIN 角色）。
 
-### 0.2 [单点登录 (SSO)](./knowledgeBase.md#sso) 需求
+### 0.2 后端支持 (blogApi)
 
-- **目标**: 用户在 `blogWeb` (前台) 登录后，访问 `blogAdmin` (后台) 时无需再次输入密码，实现一端登录，全端通用。
-- **实现逻辑**:
-  1.  **统一认证中心**: `blogApi` 作为唯一的 Identity Provider。
-  2.  **Cookie 共享**: 在同一根域名下（如 `*.me.com`），利用 Domain Cookie 共享 JWT Token。
-
----
-
-## 1. 板块一：游戏轨迹 (Game Hub)
-
-### 1.1 前台 Web (`blogWeb`)
-
-- **页面：游戏时光墙 (Game Wall)**
-  - **样式**: 采用大卡片流（Card Grid），背景高斯模糊（取自当前游戏封面颜色）。
-- **页面：游戏详情页**
-  - **交互**: 点击成就图标弹出成就达成详情；点击“前往Steam/PSN”外链。
-
-### 1.2 后台 Admin (`blogAdmin`)
-
-- **页面：同步中心**
-  - **功能**: 配置 Steam API Key、PSN ID；手动触发数据同步。
-- **页面：游戏库维护**
-  - **功能**: 修正自动抓取失败的封面图或描述信息。
-
-### 1.3 移动端 App (`blogMobile`)
-
-- **页面：游玩简报**
-  - **样式**: 简约列表，侧重展示“最近在玩”及“愿望单价格变动”。
+- `POST /auth/login`: 仅供后台管理系统调用。
+- `GET /feed.xml`: 生成符合 RSS 2.0 标准的 XML，支持 Follow/Inoreader 等订阅器。
 
 ---
 
-## 2. 板块二：知识智库 (CMS)
+## 1. 前台门户展示 (blogWeb - High Quality UI)
 
-### 2.1 前台 Web (`blogWeb`)
+### 1.1 首页设计 (Bento Grid Style)
 
-- **页面：文档概览 (Tree View)**
-  - **交互**: 自动生成右侧悬浮文章大纲（TOC）；支持代码块一键复制。
+参考 `moyuin.top` 的布局，采用现代 **Bento Grid (便当盒)** 网格系统：
 
-### 2.2 后台 Admin (`blogAdmin`)
+- **主视觉区**: 包含个人简介、实时社交状态（GitHub 热力图、MBTI 标签、当前所在地）。
+- **板块聚合**:
+  - **最近在玩**: 展示最新的 Steam/PSN 游戏卡片，带悬浮光影效果。
+  - **最新文档**: 展示最近更新的 3-5 篇技术笔记或长文。
+  - **兴趣跑马灯**: 使用 **CSS Marquee** 循环展示听歌列表、常读书目或常用工具图标（SVG）。
+- **布局规范 (Desktop Only)**:
+  - **最大宽度限制**: 主容器 `max-width: 1200px`，大屏幕居中。
+  - **自适应策略**: **禁止** 自动折叠。锁定 4 列或多列网格布局，若视口过窄，允许出现横向滚动或提示使用桌面浏览器。建议最小宽度 `1024px`。
 
-- **页面：文档编辑器 (Markdown Editor)**
-  - **功能**: 左右分栏预览；支持图片粘贴自动上传至 OSS。
+### 1.2 文档阅读页 (Immersive Reading)
 
-### 2.3 移动端 App (`blogMobile`)
-
-- **页面：阅读器**
-  - **样式**: 适配手机屏幕的排版；支持长按选取文字生成分享卡片。
-
----
-
-## 3. 板块三：资源宝库 (Resource Hub)
-
-### 3.1 前台 Web (`blogWeb`)
-
-- **页面：资源瀑布流 (Resource Masonry)**
-  - **样式**: Pinterest 风格瀑布流，展示网站缩略图、标题、描述。
-
-### 3.2 后台 Admin (`blogAdmin`)
-
-- **页面：智能剪藏助手**
-  - **交互**: 输入 URL 后，系统自动调用爬虫抓取元数据。
-
-### 3.3 移动端 App (`blogMobile`)
-
-- **页面：快捷收藏**
-  - **交互**: 检测剪贴板 URL 自动弹出提示框确认收藏。
+- **字体系 (Typography)**:
+  - 采用 `Inter` (西文) + `PingFang SC` (中文) 组合。
+  - 黄金行高 `1.8`，字号基准 `16px-18px`，开启抗锯齿渲染。
+- **动效 (Interaction)**:
+  - **滚动渐入 (Scroll Reveal)**: 页面滚动时，段落、图片与代码块平滑浮现。
+  - **代码高亮**: 集成 **Shiki**，实现与编辑器一致的像素级语法高亮。
+  - **无缝续读**: 底部自动加载关联或下一篇文章，支持平滑滚动与 URL 静默更新。
 
 ---
 
-<span id="api"></span>
+## 2. 板块功能明细
 
-## 4. 后端 API 接口定义 (NestJS - `blogApi`)
+### 2.1 游戏轨迹 (Game Hub)
 
-本节详细说明 API 模块划分及核心接口逻辑。
+- **Admin 端**: 配置 API Key，手动或定时触发全量数据同步。
+- **Web 端**: 游戏详情页支持成就墙展示，背景自适应封面色（高斯模糊）。
 
-### 4.1 通用基础模块 (Auth & Common)
+### 2.2 知识智库 (CMS)
 
-- `POST /auth/login`: 登录并返回 JWT Token。使用 `LoginSchema` 校验入参。
-- `GET /auth/me`: 获取当前登录用户信息，用于子应用无感鉴权。
+- **Admin 端**:
+  - 树状结构管理目录。
+  - Markdown 编辑器，支持图片拖拽自动上传 OSS。
+- **Web 端**: 自动提取文章 H1/H2 标题生成右侧悬浮目录（TOC）。
 
-### 4.2 游戏模块 (Game Module)
+### 2.3 资源宝库 (Resource Hub)
 
-- `GET /games/list`: 获取已同步的游戏记录。
-- `POST /games/sync/trigger`: 触发爬虫/API 同步任务。
-
-### 4.3 文档模块 (Doc Module)
-
-- `GET /docs/tree`: 获取文档目录树结构。
-- `POST /docs/upsert`: 发布/更新文档。使用 `DocSchema` 校验。
-
-### 4.4 资源模块 (Resource Module)
-
-- `POST /resources/scrape`: 传入 URL，后端返回抓取的元数据。
+- **Admin 端**: 智能剪藏，通过 URL 自动抓取 Open Graph 元数据。
+- **Web 端**: 瀑布流（Masonry）展示收藏资源，支持分类筛选。
 
 ---
 
-**由 Gemini CLI 需求分析更新 @ 2026-04-02**
+## 3. 技术实现要点 (Key Tech Specs)
+
+- **CSS 方案**: Tailwind CSS (blogAdmin) + SCSS/Vanilla CSS (blogWeb)。
+- **动效库**: **GSAP + ScrollTrigger** (用于 blogWeb 高级动效)。
+- **校验**: 全程引用 `@newblog/validation` 保持数据流安全。
+- **分发**: 每一个文档更新，自动同步到 `/feed.xml` 以驱动 RSS 订阅。
+
+---
+
+**由 Gemini CLI 需求分析重构更新 @ 2026-04-03**
