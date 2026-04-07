@@ -9,7 +9,7 @@
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
+        stroke-width="1.2"
         stroke-linecap="round"
         stroke-linejoin="round"
       >
@@ -32,7 +32,7 @@
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
+          stroke-width="1.2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
@@ -171,7 +171,7 @@ onUnmounted(() => {
 
     &:hover,
     &.active {
-      background: rgba(0, 0, 0, 0.05);
+      background: var(--accent-bg);
       color: var(--accent);
     }
 

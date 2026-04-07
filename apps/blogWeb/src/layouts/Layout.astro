@@ -17,8 +17,47 @@ const { title, description = "NewBlog - 个人门户、游戏轨迹与知识智�
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/MuYuCat.png" />
     <meta name="generator" content={Astro.generator} />
+
+    <!-- Theme Blocking Script - Prevents FOUC -->
+    <script is:inline>
+      (function() {
+        const getTheme = () => {
+          if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+            return localStorage.getItem('theme');
+          }
+          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        };
+        
+        const theme = getTheme();
+        const root = document.documentElement;
+        
+        // 立即应用类名
+        if (theme === 'dark') {
+          root.classList.add('dark');
+          root.classList.remove('light');
+        } else {
+          root.classList.add('light');
+          root.classList.remove('dark');
+        }
+        
+        // 关键：在初始化时禁用过渡动画，防止闪烁过程可见
+        root.style.setProperty('transition', 'none', 'important');
+        window.onload = () => {
+          // 渲染完成后恢复过渡
+          setTimeout(() => {
+            root.style.removeProperty('transition');
+          }, 0);
+        };
+
+        document.addEventListener('astro:after-swap', () => {
+          const t = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.classList.toggle('dark', t === 'dark');
+          document.documentElement.classList.toggle('light', t !== 'dark');
+        });
+      })();
+    </script>
 
     <!-- SEO Meta Tags -->
     <title>{title}</title>
@@ -38,6 +77,11 @@ const { title, description = "NewBlog - 个人门户、游戏轨迹与知识智�
 
     <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/feed.xml" />
     
+    <!-- Elite Typography: Cormorant Garamond (Heading) & Montserrat (Body/UI) & Noto Serif SC (Chinese) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Montserrat:wght@100..900&family=Noto+Serif+SC:wght@200..900&display=swap" rel="stylesheet">
+
     <!-- View Transitions Support -->
     <ViewTransitions />
 

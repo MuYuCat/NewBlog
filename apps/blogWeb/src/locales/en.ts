@@ -9,8 +9,10 @@ export default {
   导航: {
     首页: 'Home',
     游戏轨迹: 'Games',
-    知识智库: 'Docs',
-    资源宝库: 'Resources',
+    知识智库: 'Wiki',
+    资源宝库: 'Vault',
+    更多: 'More',
+    归档: 'Archive',
     关于我: 'About',
   },
   首屏: {

@@ -9,8 +9,10 @@ import HeaderActions from './HeaderActions.vue';
   <div class="header-container">
     <div class="header-inner">
       <div class="header-left">
-        <a href="/" class="logo">
-          MuYuCat
+        <a href="/" class="logo-wrapper">
+          <img src="/light.png" alt="MuYuCat Logo" class="logo-img light-only" />
+          <img src="/dark.png" alt="MuYuCat Logo" class="logo-img dark-only" />
+          <span class="logo-text">MuYuCat</span>
         </a>
       </div>
       
@@ -32,10 +34,11 @@ import HeaderActions from './HeaderActions.vue';
   left: 0;
   width: 100%;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(255, 255, 255, 0.6); // 降低不透明度
+  backdrop-filter: blur(20px) saturate(180%); // 增强磨砂感
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  transition: background 0.3s, border-color 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   // 初始状态 JS 控制
   transform: translateY(-100%);
@@ -43,8 +46,8 @@ import HeaderActions from './HeaderActions.vue';
   pointer-events: none;
 
   :global(.dark) & {
-    background: rgba(28, 28, 30, 0.8);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(10, 10, 12, 0.6); // 匹配新暗色底色
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .scroll-progress {
@@ -92,17 +95,36 @@ import HeaderActions from './HeaderActions.vue';
       justify-content: flex-end;
     }
 
-    .logo {
-      font-size: 1.25rem;
-      font-weight: 800;
-      letter-spacing: -0.05em;
-      color: var(--text-h);
+    .logo-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
       text-decoration: none;
-      transition: opacity 0.3s, color 0.3s;
-      white-space: nowrap;
-      
+      transition: opacity 0.3s;
+
       &:hover {
         opacity: 0.8;
+      }
+
+      .logo-img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+      }
+
+      .logo-text {
+        font-family: var(--heading);
+        font-size: 1.4rem;
+        font-weight: 500;
+        font-style: italic;
+        letter-spacing: 0.02em;
+        color: var(--text-h);
+      }
+
+      .dark-only { display: none; }
+      :global(.dark) & {
+        .light-only { display: none; }
+        .dark-only { display: block; }
       }
     }
   }

@@ -1,0 +1,17 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Placeholder from '../views/shared/Placeholder.vue';
+---
+<Layout title="资源宝库 - MuYuCat">
+  <main class="page-container">
+    <Placeholder client:load phase="Vault Module" release="Late 2026" />
+  </main>
+</Layout>
+
+<style>
+  .page-container {
+    padding-top: 64px;
+    background: var(--bg);
+    min-height: 100vh;
+  }
+</style>

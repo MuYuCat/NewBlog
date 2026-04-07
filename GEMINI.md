@@ -57,13 +57,12 @@
 
 ## 4. 当前任务与下一步
 
-- **同步点**: 2026-04-03 (会话归档)
-  - [x] **架构转型**: 完成 `blogWeb` 从 Vue SPA 向 **Astro + Vue (孤岛架构)** 的深度迁移。
-  - [x] **视觉转型**: 全站完成从暗色向 **亮色系 (Apple Style Light Mode)** 的转型，并确立了 **Desktop Only** 强制规范。
-  - [x] **交互重构**: 实现了混合 Header 策略、**View Transitions** 无缝跳转及 **Apple Style** 胶囊切换开关。
-  - [x] **Header/Footer 重构**: 实现了左、中、右三列布局，全站样式由 **SCSS** 驱动，并严格遵守 `1300px` 宽度限制。
-  - [x] **多语言系统**: 接入语义化 i18n 系统（支持中英双语），采用 **“中文 Key”** 模式提升代码可读性。
-  - [x] **状态管理**: 解决了 Astro 孤岛下的 Pinia 初始化冲突，实现了跨页面（View Transitions Swap）的主题与语言持久化同步。
+- **同步点**: 2026-04-07 (当前进度)
+  - [x] **精英视觉 (Elite UI)**: 全站接入 **Cormorant Garamond** 与 **Montserrat** 高奢字体系统，统一中西文宋体排版。
+  - [x] **首屏重塑**: 实现了 `MuYuCat` 并排式社交入口与 **2.5s 极简淡入** 呼吸动效。
+  - [x] **安全底座**: 强制实施了 `rel="noopener noreferrer"` 安全实践与 `mailto:` 通讯集成。
+  - [x] **性能闭环**: 彻底解决了 Astro 下主题切换的 **FOUC 闪烁**，实现了阻塞式初始化脚本。
+  - [x] **状态管理**: `useThemeStore` 与 `localStorage` 闭环同步。
 - **待办 (Next Steps)**:
   1. **[后端]** 实现内容分发接口：生成 RSS 订阅源 (`/feed.xml`) 及站点地图 (`sitemap.xml`)。
   2. **[后端]** 开发 Webhook 触发机制，打通“后台更新 -> 触发 Astro 自动重构”的 Jamstack 流水线。
@@ -72,4 +71,4 @@
 
 ---
 
-**由 Gemini CLI 自动维护 @ 2026-04-03**
+**由 Gemini CLI 自动维护 @ 2026-04-07**

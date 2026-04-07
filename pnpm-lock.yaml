@@ -245,6 +245,9 @@ importers:
       astro:
         specifier: ^4.15.0
         version: 4.16.19(@types/node@24.12.0)(less@4.6.4)(lightningcss@1.32.0)(rollup@4.60.1)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)
+      dayjs:
+        specifier: ^1.11.20
+        version: 1.11.20
       gsap:
         specifier: ^3.12.5
         version: 3.14.2

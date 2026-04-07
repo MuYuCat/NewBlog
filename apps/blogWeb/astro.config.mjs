@@ -6,11 +6,8 @@ import tailwind from '@astrojs/tailwind';
 export default defineConfig({
   integrations: [
     vue({
-      appEntrypoint: 'src/_app.ts'
-    }), 
-    tailwind()
-  ]
-});
+      appEntrypoint: 'src/_app.ts',
+    }),
     tailwind({
       // 禁用默认的 preflight 以防样式冲突，后期可以根据需要开启
       applyBaseStyles: true,

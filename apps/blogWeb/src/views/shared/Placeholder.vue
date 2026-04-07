@@ -1,13 +1,16 @@
 <script setup lang="ts">
-// BentoGrid.vue - 极简占位版
-import { useI18n } from '../../hooks/useI18n';
-const { t } = useI18n();
+// Placeholder.vue - 通用功能开发中占位
+interface Props {
+  phase?: string;
+  release?: string;
+}
+defineProps<Props>();
 </script>
 
 <template>
   <section class="placeholder-section">
     <div class="content-wrapper">
-      <div class="status-badge">Phase 01</div>
+      <div class="status-badge">{{ phase || 'Phase 01' }}</div>
       <h2 class="main-title">功能正在开发中</h2>
       <p class="sub-title">敬请期待 · Under Development</p>
 
@@ -20,7 +23,7 @@ const { t } = useI18n();
         </div>
         <div class="info-item">
           <span class="label">Release</span>
-          <span class="value">Spring 2026</span>
+          <span class="value">{{ release || 'Spring 2026' }}</span>
         </div>
       </div>
     </div>
@@ -29,7 +32,7 @@ const { t } = useI18n();
 
 <style scoped lang="scss">
 .placeholder-section {
-  min-height: 100vh;
+  min-height: 80vh;
   width: 100%;
   display: flex;
   justify-content: center;

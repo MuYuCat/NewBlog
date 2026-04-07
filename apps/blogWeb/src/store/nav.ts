@@ -18,10 +18,9 @@ export const useNavStore = defineStore('nav', () => {
       // 模拟 API 调用
       const mockData: NavItem[] = [
         { name: '首页', path: '/' },
-        { name: '游戏轨迹', path: '/games' },
-        { name: '知识智库', path: '/docs' },
-        { name: '资源宝库', path: '/resources' },
-        { name: '关于我', path: '/about' },
+        { name: '游戏轨迹', path: '/game' },
+        { name: '知识智库', path: '/knowledge' },
+        { name: '资源宝库', path: '/resource' },
       ];
 
       navItems.value = mockData;

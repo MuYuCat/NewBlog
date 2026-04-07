@@ -4,6 +4,35 @@
 
 ---
 
+## 2026-04-07：精英排版系统、首屏布局重构与极致体验闭环
+
+### 🚀 重大变更
+
+- **精英排版系统 (Elite Typography)**:
+  - **核心选型**: 确立了以 **Cormorant Garamond** (Heading/Logo) 和 **Montserrat** (Body/UI) 为核心的高奢字体栈。
+  - **中文字体同步**: 全站接入 **Noto Serif SC** (思源宋体)，确保中西文字形在视觉重量与气质上高度对齐。
+- **首屏 (Hero) 深度重构**:
+  - **并排式布局**: 实现了 `MuYuCat` 副标题与 4 个社交图标（GitHub, Telegram, WeChat, Email）的水平并排展示。
+  - **视觉分割**: 通过垂直分割线 (`border-left`) 与弹性间距营造出极简且专业的高端杂志排版感。
+  - **极简动力学**: 移除了所有复杂的 Stagger 动效，改为单一的、时长 **2.5s** 的全局淡入动画，追求极致的静谧感。
+- **安全与交互实践**:
+  - **链接安全**: 为所有 `target="_blank"` 链接强制添加了 `rel="noopener noreferrer"`，防御钓鱼攻击并提升跨进程性能。
+  - **邮件唤起**: 实现了基于 `mailto:` 协议的邮件直接联系功能。
+  - **彻底解决 FOUC (闪烁)**: 通过阻塞式内联脚本与 `transition: none` 策略，彻底解决了亮暗主题初始化时的视觉抖动。
+- **资产系统最终更迭**:
+  - **Favicon**: 统一使用 `MuYuCat.png` 作为网站图标。
+  - **Logo**: 弃用 SVG 方案，全站接入专用 PNG 资产（亮色 `light.png` / 暗色 `dark.png`），确保了品牌形象的极致细腻度。
+- **排版与背景统一**: 彻底统一了全站底色，消除了不同分屏间的色差断层。
+
+### 📦 交付物
+
+- `apps/blogWeb/src/style.css`: 统一定义了高奢字体栈与亮色紫/暗色白的主题 Token。
+- `apps/blogWeb/src/views/index/Hero.vue`: 实现了极简并排布局与长效淡入动效。
+- `apps/blogWeb/src/layouts/Layout.astro`: 引入了 Google Fonts 字体资源及防闪烁脚本。
+- `apps/blogWeb/src/components/Navbar.vue`: 适配了思源宋体的导航项排版。
+
+---
+
 ## 2026-04-03：交互深度进化、语义化 i18n 与 Apple Style 视觉闭环
 
 ### 🚀 重大变更

@@ -2,16 +2,34 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
 export const useThemeStore = defineStore('theme', () => {
-  // 核心状态：'light' | 'dark'
+  // 核心状态：初始化时优先从 localStorage 或系统偏好读取
   const theme = ref<'light' | 'dark'>('light');
 
-  // 1. 切换主题
-  const toggleTheme = () => {
-    theme.value = theme.value === 'light' ? 'dark' : 'light';
+  // 1. 初始化逻辑 (用于 Vue 挂载后的二次同步)
+  const initTheme = () => {
+    if (typeof localStorage !== 'undefined') {
+      const stored = localStorage.getItem('theme');
+      if (stored === 'dark' || stored === 'light') {
+        theme.value = stored as 'light' | 'dark';
+      } else {
+        // 无存储时，参考系统偏好
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme.value = isDark ? 'dark' : 'light';
+      }
+    }
     applyThemeToDOM();
   };
 
-  // 2. 将状态同步到 DOM (html 标签)
+  // 2. 切换主题
+  const toggleTheme = () => {
+    theme.value = theme.value === 'light' ? 'dark' : 'light';
+    applyThemeToDOM();
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('theme', theme.value);
+    }
+  };
+
+  // 3. 将状态同步到 DOM (html 标签)
   const applyThemeToDOM = () => {
     if (typeof document !== 'undefined') {
       const root = document.documentElement;
@@ -23,12 +41,6 @@ export const useThemeStore = defineStore('theme', () => {
         root.classList.remove('dark');
       }
     }
-  };
-
-  // 3. 初始化逻辑
-  const initTheme = () => {
-    // 强制执行一次同步，确保当前 DOM 匹配 Store 状态
-    applyThemeToDOM();
   };
 
   return {

@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Hero from '../views/index/Hero.vue';
+import Poetry from '../views/index/Poetry.vue';
 import BentoGrid from '../views/index/BentoGrid.vue';
 
 // SEO 配置
@@ -12,8 +13,8 @@ const description = "基于 Astro + Vue 的高质感个人博客。展示游戏�
   
   <main class="main-content">
     <Hero client:load />
-    <Hero client:load />
-    <BentoGrid client:load />
+    <Poetry client:visible />
+    <BentoGrid client:visible />
   </main>
 
   <!-- 3. JSON-LD 结构化数据 -->
