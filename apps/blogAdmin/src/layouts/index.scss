@@ -1,0 +1,58 @@
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  margin: 12px;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.3s;
+  border: 1px solid transparent;
+
+  &:hover {
+    background: rgba(138, 43, 226, 0.05);
+    border-color: rgba(138, 43, 226, 0.1);
+  }
+
+  .profile-info {
+    flex: 1;
+    overflow: hidden;
+
+    .profile-name {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--ant-text-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .profile-role {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--ant-text-color-secondary);
+    }
+  }
+}
+
+.logout-btn-container {
+  padding: 0 16px 16px;
+
+  .logout-btn {
+    border-radius: 10px;
+    font-size: 0.8rem;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    color: #ff4d4f;
+    border-color: rgba(255, 77, 79, 0.2);
+
+    &:hover {
+      background: rgba(255, 77, 79, 0.05);
+      border-color: #ff4d4f;
+    }
+  }
+}

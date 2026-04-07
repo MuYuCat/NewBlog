@@ -1,0 +1,22 @@
+{
+  "extends": "./src/.umi/tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@@/*": ["./src/.umi/*"],
+      "@newblog/validation": ["../../packages/validation/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*", ".umirc.ts", "typings.d.ts"],
+  "exclude": ["node_modules"]
+}

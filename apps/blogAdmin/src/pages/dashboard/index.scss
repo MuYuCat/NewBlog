@@ -1,0 +1,197 @@
+.dashboard-wrapper {
+  padding: 2rem;
+  min-height: 100vh;
+  transition: all 0.5s ease;
+
+  &.light {
+    background: #fcfcfc;
+    --card-bg: rgba(255, 255, 255, 0.8);
+    --card-border: rgba(0, 0, 0, 0.05);
+    --text-main: #08060d;
+  }
+
+  &.dark {
+    background: #050505;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text-main: #ffffff;
+  }
+
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+
+    .dashboard-title {
+      font-family: 'Noto Serif SC', serif;
+      font-weight: 600;
+      font-size: 2rem;
+      margin: 0;
+      color: var(--text-main);
+    }
+
+    .dashboard-subtitle {
+      opacity: 0.5;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+    }
+
+    .status-tag {
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+  }
+
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 32px;
+    backdrop-filter: blur(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      transform: translateY(-5px);
+      border-color: #8a2be2;
+      box-shadow: 0 20px 40px rgba(138, 43, 226, 0.05);
+    }
+
+    .icon-purple {
+      color: #8a2be2;
+      font-size: 1.2rem;
+      margin-right: 8px;
+    }
+
+    .stat-footer {
+      margin-top: 12px;
+      font-size: 0.75rem;
+      opacity: 0.4;
+      font-weight: 500;
+    }
+
+    &.highlight {
+      background: linear-gradient(135deg, rgba(138, 43, 226, 0.1) 0%, rgba(71, 150, 255, 0.1) 100%);
+      border: 1px solid rgba(138, 43, 226, 0.2);
+    }
+  }
+
+  .mbti-display {
+    display: flex;
+    flex-direction: column;
+
+    .mbti-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      opacity: 0.6;
+    }
+
+    .mbti-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.8rem;
+      font-weight: 600;
+      font-style: italic;
+      line-height: 1.2;
+      color: #8a2be2;
+    }
+  }
+
+  .mbti-desc {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.85rem;
+    opacity: 0.6;
+    margin-top: 4px;
+  }
+
+  .main-content-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 32px;
+    min-height: 400px;
+
+    .card-title-custom {
+      font-family: 'Noto Serif SC', serif;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+    }
+
+    .ant-card-head {
+      border-bottom: 1px solid var(--card-border);
+      padding: 0 2rem;
+      min-height: 64px;
+    }
+
+    .ant-card-body {
+      padding: 1.5rem 2rem;
+    }
+  }
+
+  .history-item {
+    padding: 1.2rem 0 !important;
+    border-bottom: 1px solid var(--card-border) !important;
+
+    &:last-child {
+      border-bottom: none !important;
+    }
+
+    .type-icon {
+      background: rgba(138, 43, 226, 0.1);
+      border: 1px solid rgba(138, 43, 226, 0.2);
+
+      &.game {
+        background: rgba(76, 175, 80, 0.1);
+        border-color: rgba(76, 175, 80, 0.2);
+      }
+      &.article {
+        background: rgba(33, 150, 243, 0.1);
+        border-color: rgba(33, 150, 243, 0.2);
+      }
+    }
+
+    .history-title {
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .history-time {
+      font-size: 0.8rem;
+      opacity: 0.4;
+    }
+  }
+
+  .snapshot-grid {
+    display: grid;
+    gap: 1.5rem;
+
+    .snapshot-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.02);
+      border-radius: 16px;
+
+      .label {
+        font-size: 0.8rem;
+        opacity: 0.5;
+      }
+
+      .value {
+        font-weight: 600;
+        font-size: 0.9rem;
+
+        &.success {
+          color: #52c41a;
+        }
+      }
+    }
+  }
+}
+
+:global(.dark) {
+  .snapshot-item {
+    background: rgba(255, 255, 255, 0.02) !important;
+  }
+}

@@ -1,0 +1,228 @@
+.login-container {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: background-color 0.5s ease;
+
+  &.light {
+    background-color: #fcfcfc;
+    .glow-1 {
+      bg-color: rgba(138, 43, 226, 0.05);
+    }
+    .glow-2 {
+      bg-color: rgba(0, 102, 204, 0.02);
+    }
+  }
+
+  &.dark {
+    background-color: #050505;
+    .glow-1 {
+      background: rgba(138, 43, 226, 0.1);
+    }
+    .glow-2 {
+      background: rgba(0, 102, 204, 0.05);
+    }
+  }
+
+  .glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    transition: opacity 1s;
+    pointer-events: none;
+  }
+
+  .glow-1 {
+    top: -10%;
+    left: -5%;
+    width: 50%;
+    height: 50%;
+    background: rgba(138, 43, 226, 0.15);
+  }
+
+  .glow-2 {
+    bottom: -5%;
+    right: -5%;
+    width: 40%;
+    height: 40%;
+    background: rgba(71, 150, 255, 0.1);
+  }
+
+  .login-content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 1100px;
+    height: 640px;
+    display: flex;
+    margin: 0 1.5rem;
+  }
+
+  .brand-side {
+    display: none;
+    @media (min-width: 1024px) {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4rem;
+      text-align: left;
+    }
+
+    .brand-logo {
+      width: 4.5rem;
+      height: 4.5rem;
+      object-fit: contain;
+      margin-bottom: 2rem;
+      opacity: 0.95;
+    }
+
+    .divider {
+      width: 4rem;
+      height: 1px;
+      margin: 2.5rem 0;
+      background: rgba(var(--text-color-rgb), 0.15);
+    }
+
+    .slogan-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+
+      .slogan-line {
+        font-family: 'Noto Serif SC', serif;
+        font-weight: 300;
+        font-size: 1rem;
+        line-height: 1.8;
+        opacity: 0.6;
+        letter-spacing: 0.15em;
+      }
+    }
+  }
+
+  .login-card-wrapper {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    @media (min-width: 1024px) {
+      width: 460px;
+    }
+  }
+
+  .login-card {
+    width: 100%;
+    position: relative;
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2.5rem;
+    border-radius: 40px;
+    transition: all 0.5s ease;
+
+    @media (min-width: 768px) {
+      padding: 3.5rem;
+    }
+
+    &.light-card {
+      background: rgba(255, 255, 255, 0.7);
+      border-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 20px 50px rgba(138, 43, 226, 0.05);
+    }
+
+    &.dark-card {
+      background: rgba(0, 0, 0, 0.4);
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  .theme-toggle {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(var(--text-color-rgb), 0.1);
+    cursor: pointer;
+    transition: all 0.3s;
+    background: rgba(var(--text-color-rgb), 0.03);
+    color: var(--accent-color);
+
+    &:hover {
+      background: rgba(var(--text-color-rgb), 0.08);
+      transform: scale(1.05);
+    }
+  }
+
+  /* 核心输入框样式 - 彻底解决高度与背景兼容性 */
+  .custom-input {
+    margin-bottom: 1.5rem;
+
+    :global {
+      .ant-input-affix-wrapper,
+      .ant-input-password {
+        height: 56px !important;
+        padding: 0 1.25rem !important;
+        border-radius: 18px !important;
+        background: rgba(var(--text-color-rgb), 0.03) !important;
+        border: 1px solid rgba(var(--text-color-rgb), 0.06) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+        &:hover,
+        &.ant-input-affix-wrapper-focused,
+        &.ant-input-password-focused {
+          background: #fff !important;
+          border-color: #8a2be2 !important;
+          box-shadow: 0 8px 25px rgba(138, 43, 226, 0.08) !important;
+        }
+
+        .ant-input {
+          background: transparent !important;
+          font-size: 0.95rem !important;
+          height: 100% !important;
+        }
+      }
+    }
+  }
+
+  :global(.dark) {
+    .custom-input :global(.ant-input-affix-wrapper) {
+      &:hover,
+      &.ant-input-affix-wrapper-focused {
+        background: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+      }
+    }
+  }
+
+  .elite-submit-btn {
+    height: 56px !important;
+    border-radius: 18px !important;
+    background: #8a2be2 !important;
+    border: none !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.25em !important;
+    box-shadow: 0 12px 30px rgba(138, 43, 226, 0.25) !important;
+    transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1) !important;
+
+    &:hover {
+      transform: translateY(-3px);
+      background: #7a22c9 !important;
+      box-shadow: 0 18px 40px rgba(138, 43, 226, 0.35) !important;
+    }
+
+    &:active {
+      transform: translateY(-1px);
+    }
+  }
+}

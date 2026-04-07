@@ -15,6 +15,6 @@ export default defineConfig({
   ],
   output: 'static', // 默认 SSG，追求极致 SEO 和性能
   server: {
-    port: 3000,
+    port: 8080,
   },
 });

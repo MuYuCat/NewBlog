@@ -1,7 +1,7 @@
 <template>
   <div class="header-actions">
     <!-- 搜索按钮 -->
-    <button class="action-btn" :title="t('页头.搜索')">
+    <!-- <button class="action-btn" :title="t('页头.搜索')">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="20"
@@ -16,8 +16,7 @@
         <circle cx="11" cy="11" r="8" />
         <path d="m21 21-4.3-4.3" />
       </svg>
-    </button>
-
+    </button>  -->
     <!-- 语言切换 -->
     <div
       class="menu-wrapper"
