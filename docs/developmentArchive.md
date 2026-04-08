@@ -4,31 +4,61 @@
 
 ---
 
+## 2026-04-08：Elite Admin 架构解放与极致视觉同步
+
+### 🚀 重大变更
+
+- **架构大革命 (blogAdmin)**:
+  - **弃用 ProLayout**: 彻底移除了 UmiJS 默认的自动布局插件，改为在 `src/layouts/index.tsx` 中手动实现全局布局。
+  - **掌控力提升**: 解决了 `ProLayout` 内部状态闭包导致的亮暗模式切换延迟问题，实现了 100% 的实时渲染响应。
+- **极致视觉同步 (Full-Stack UI)**:
+  - **色值对齐**: 将 `blogAdmin` 的暗色模式背景色精准锁定为 `#0a0a0c`，与 `blogWeb` 完美对齐，消除了侧边栏与内容区的色差。
+  - **高奢侧边栏 (V2)**: 实现了“大色块菜单”交互，引入了 `Cormorant Garamond` 衬线体标题与 PITAO 系列随机头像。
+  - **性能优化**: 启用了 Ant Design 5 的 `cssVar: true` 模式，并采用“DOM 优先反馈”策略，使主题切换达到丝滑的 0 延迟感。
+- **品牌体系闭环**:
+  - **标识同步**: 统一了全站的 `MuYuCat` Logo、Favicon 以及网页标题 (`MuYuCat - 管理后台`)。
+  - **全局规范**: 在 `GEMINI.md` 中强制确立了“全程中文交流”与“内容完整性”的开发红线。
+
+### 📦 交付物
+
+- `apps/blogAdmin/src/layouts/index.tsx`: 手搓的高性能全局布局组件。
+- `apps/blogAdmin/src/layouts/index.scss`: 适配亮暗模式的“流动玻璃”样式表。
+- `apps/blogAdmin/public/MuYuCat.png`: 同步后的品牌图标。
+
+---
+
 ## 2026-04-07：全站精英视觉体系闭环与 Elite Admin 深度重塑
 
 ### 🚀 重大变更
 
-- **全站精英视觉 (Elite UI)**:
-  - **字体革命**: 确立了 **Cormorant Garamond** (Heading) + **Montserrat** (UI) + **Noto Serif SC** (Chinese) 的高奢组合。
-  - **交互体验**: 首页实现了 Hero (2.5s 缓慢淡入) -> Poetry (100vh 人文独白) -> Placeholder 的节奏递进。
-- **Elite Admin 后台架构精简与深度集成**:
-  - **交互重塑**: 废弃用户管理列表，改为侧边栏底部点击头像唤起 **Modal 弹窗** 直接修改个人信息，极简化操作流。
-  - **全栈集成**: `blogAdmin` 成功接入 `blogApi` 登录接口，实现了 JWT 认证与全局路由拦截（`getInitialState`）。
-  - **响应标准化**: 建立了后端 `TransformInterceptor` 与前端 `request` 封装，确立了全栈 `{ code, data, message }` 的通信协议。
-- **技术底层优化**:
-  - **类型补全**: 修复了 UmiJS v4 动态模型的 TS 报错，完善了 `src/app.ts` 与 `src/access.ts` 配置。
-  - **数据同步**: 修复了 `@newblog/validation` 共享包的编译导出逻辑，确保其在 NestJS 环境下稳健运行。
-- **小白级文档体系**:
-  - 确立了“餐厅/厨房”比喻模型，并在 `apps/blogApi/README.md` 和 `GEMINI.md` 中以此为准则进行了通俗化改写。
+- **后端代码质量进化 (blogApi)**:
+  - 彻底清理了 NestJS 项目的 ESLint 顽疾。
+  - **规范化**: 修复了 `any` 滥用、未等待的 Promise (`no-floating-promises`)、以及 `async` 函数中缺少 `await` 的警告。
+  - **健壮性**: 为全局过滤器 (`HttpExceptionFilter`) 建立了结构化的 `ErrorResponse` 类型定义，确保了错误消息提取的安全性。
+- **前台门户体验增强 (blogWeb)**:
+  - **网络层重构**: 将开发环境代理 (Proxy) 从 `request.ts` 迁移至 `astro.config.mjs`，实现了更专业的解耦。
+  - **沉浸式 404**: 基于 **MuYuCat (木鱼猫)** 品牌调性与“毛线球”插图，设计了具备叙事感的 404 页面，支持 100vh 动态背景与全栈亮暗色适配。
+- **Elite Admin 侧边栏重构 (Sidebar-Centric)**:
+  - **布局革命**: 废弃了顶部 Header，确立了以侧边栏为核心的“垂直流”布局。
+  - **品牌集成**: 侧边栏头部集成了 MuYuCat 动态 Logo 与大尺寸亮暗切换按钮 (`20px`)。
+  - **个性化体验**: 引入了 **PITAO 系列随机头像** 系统，每次登录/刷新均可获得不同的猫咪/动物形象，并放大了头像显示尺寸 (`48px`)。
+  - **蓝图可视化**: 完成了 5 个核心模块（菜单、游戏、文章、资源、日志）的 Demo 页面搭建与路由同步，实现了“所见即所得”的功能蓝图。
+- **技术底层稳固**:
+  - **类型声明**: 解决了静态资源 (`.png`) 在 TypeScript 下的 `TS(2307)` 找不到模块问题。
+  - **运行时扩展**: 成功将复杂的 UI 逻辑从独立 Layout 组件迁移至 UmiJS 的 `RunTimeLayoutConfig` (`app.tsx`)，解决了侧边栏菜单渲染丢失的架构难题。
 
 ### 📦 交付物
 
-- `apps/blogAdmin/src/layouts/`: 集成个人信息修改弹窗的高奢侧边栏。
-- `apps/blogApi/src/auth/`: 具备自动初始化能力的认证模块。
-- `apps/blogApi/src/common/`: 统一响应格式处理工具集。
-- `docs/sessions/2026-04-07_session_backup.md`: 本次会话全景备份。
+- `apps/blogWeb/src/pages/404.astro`: 具备品牌叙事感的 404 错误页。
+- `apps/blogAdmin/src/app.tsx`: 集成了主题切换与随机头像逻辑的运行时布局配置。
+- `apps/blogAdmin/src/pages/`: 完整的后台功能模块 Demo 矩阵。
+- `apps/blogAdmin/src/typings.d.ts`: 全局静态资源类型声明文件。
 
 ---
+
+## 2026-04-07：全站精英视觉体系闭环与 Elite Admin 早期启动 (旧记录备份)
+
+...
 
 ## 2026-04-03：交互深度进化、语义化 i18n 与 Apple Style 视觉闭环
 

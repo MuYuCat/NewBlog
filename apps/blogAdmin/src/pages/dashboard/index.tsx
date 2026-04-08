@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Typography, Row, Col, Card, Statistic, List, Tag, Avatar, Button } from 'antd';
 import {
   RiseOutlined,
@@ -9,29 +9,30 @@ import {
   SyncOutlined,
 } from '@ant-design/icons';
 import { gsap } from 'gsap';
+import { useModel } from '@umijs/max';
 import './index.scss';
 
 const { Title, Text } = Typography;
 
 const Dashboard: React.FC = () => {
-  const [isDark, setIsDark] = useState(false);
+  const { initialState } = useModel('@@initialState');
+  const isDark = initialState?.settings?.navTheme === 'dark';
 
   useEffect(() => {
-    const theme = localStorage.getItem('admin-theme');
-    setIsDark(theme === 'dark');
-
-    // 渐现动画
-    gsap.fromTo(
+    // 渐现动画 - 仅在组件首次挂载或主题切换时执行（如果需要）
+    const tl = gsap.timeline();
+    tl.fromTo(
       '.stat-card',
       { opacity: 0, y: 20 },
       { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power2.out' },
     );
-    gsap.fromTo(
+    tl.fromTo(
       '.main-content-card',
       { opacity: 0, scale: 0.98 },
-      { opacity: 1, scale: 1, duration: 1, ease: 'expo.out', delay: 0.4 },
+      { opacity: 1, scale: 1, duration: 1, ease: 'expo.out' },
+      '-=0.4',
     );
-  }, []);
+  }, [isDark]); // 监听主题变化，确保动画在主题切换时也能重新触发（或根据需求决定是否保留）
 
   return (
     <div className={`dashboard-wrapper ${isDark ? 'dark' : 'light'}`}>

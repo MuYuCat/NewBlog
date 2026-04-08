@@ -17,6 +17,6 @@
       "@newblog/validation": ["../../packages/validation/src/index.ts"]
     }
   },
-  "include": ["src/**/*", ".umirc.ts", "typings.d.ts"],
+  "include": ["src/**/*", ".umirc.ts", "src/typings.d.ts"],
   "exclude": ["node_modules"]
 }

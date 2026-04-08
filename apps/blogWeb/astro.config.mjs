@@ -16,5 +16,12 @@ export default defineConfig({
   output: 'static', // 默认 SSG，追求极致 SEO 和性能
   server: {
     port: 8080,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''), // 去掉 /api 前缀以匹配后端真实的 controller 路径
+      },
+    },
   },
 });

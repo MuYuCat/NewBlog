@@ -2,6 +2,8 @@ import { defineConfig } from '@umijs/max';
 import path from 'path';
 
 export default defineConfig({
+  title: 'MuYuCat - 管理后台',
+  favicons: ['/MuYuCat.png'],
   antd: {
     configProvider: {
       theme: {
@@ -22,6 +24,8 @@ export default defineConfig({
   },
   model: {},
   initialState: {},
+  // 彻底关闭自动布局插件
+  layout: false,
   request: {},
   headScripts: [
     {
@@ -44,6 +48,36 @@ export default defineConfig({
       component: './dashboard',
       name: '仪表盘',
       icon: 'dashboard',
+    },
+    {
+      path: '/menu',
+      component: './menu',
+      name: '菜单管理',
+      icon: 'menu',
+    },
+    {
+      path: '/game',
+      component: './game',
+      name: '游戏管理',
+      icon: 'playSquare',
+    },
+    {
+      path: '/article',
+      component: './article',
+      name: '文章管理',
+      icon: 'read',
+    },
+    {
+      path: '/vault',
+      component: './vault',
+      name: '资源宝库',
+      icon: 'folderOpen',
+    },
+    {
+      path: '/analytics',
+      component: './analytics',
+      name: '日志管理',
+      icon: 'lineChart',
     },
   ],
   npmClient: 'pnpm',

@@ -9,37 +9,40 @@ export async function getInitialState(): Promise<{
     avatar?: string;
     role: string;
   };
+  settings?: {
+    navTheme: 'light' | 'dark';
+  };
   isLoggedIn: boolean;
 }> {
   const token = localStorage.getItem('admin-token');
+  const savedTheme = (localStorage.getItem('admin-theme') as 'light' | 'dark') || 'light';
   const pathname = window.location.pathname;
 
-  // 1. 登录拦截逻辑
   if (!token && pathname !== '/login') {
     history.push('/login');
-    return { isLoggedIn: false };
+    return { isLoggedIn: false, settings: { navTheme: savedTheme } };
   }
 
-  // 2. 如果已登录，模拟获取用户信息 (真实环境应请求接口)
   if (token) {
     return {
       currentUser: {
         username: 'MuYuCat',
-        avatar: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png',
         role: 'ADMIN',
+      },
+      settings: {
+        navTheme: savedTheme,
       },
       isLoggedIn: true,
     };
   }
 
-  return { isLoggedIn: false };
+  return { isLoggedIn: false, settings: { navTheme: savedTheme } };
 }
 
-// 全局请求配置 (Axios 封装)
+// 全局请求配置
 export const request: RequestConfig = {
   baseURL: '/api',
   timeout: 10000,
-  // 请求拦截：携带 Token
   requestInterceptors: [
     (config: any) => {
       const token = localStorage.getItem('admin-token');
@@ -49,16 +52,13 @@ export const request: RequestConfig = {
       return config;
     },
   ],
-  // 响应拦截：处理统一返回格式
   responseInterceptors: [
     (response: any) => {
-      const { data } = response;
-      // 这里的 data 对应后端返回的 { code, data, message }
+      const { data } = response as any;
       if (data && data.code !== 200) {
         message.error(data.message || '服务异常');
         return Promise.reject(data);
       }
-      // 返回 data.data，让前端调用处直接拿数据
       return data;
     },
   ],
