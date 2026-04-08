@@ -9,18 +9,22 @@ export default defineConfig({
       appEntrypoint: 'src/_app.ts',
     }),
     tailwind({
-      // 禁用默认的 preflight 以防样式冲突，后期可以根据需要开启
       applyBaseStyles: true,
     }),
   ],
-  output: 'static', // 默认 SSG，追求极致 SEO 和性能
+  output: 'static',
   server: {
     port: 8080,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''), // 去掉 /api 前缀以匹配后端真实的 controller 路径
+  },
+  // 使用 Vite 底层代理配置，解决 Astro 路由拦截导致的 404 问题
+  vite: {
+    server: {
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:3000',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+        },
       },
     },
   },

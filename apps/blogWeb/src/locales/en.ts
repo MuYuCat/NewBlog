@@ -23,4 +23,11 @@ export default {
     关于标题: 'Full-stack Dev, Gamer & Digital Nomad',
     关于描述: 'Focusing on high-quality digital experiences, exploring Web3 and AI.',
   },
+  // Key mapping
+  Home: 'Home',
+  Games: 'Games',
+  Knowledge: 'Wiki',
+  Resources: 'Vault',
+  More: 'More',
+  Archive: 'Archive',
 };

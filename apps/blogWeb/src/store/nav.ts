@@ -1,9 +1,14 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-interface NavItem {
+export interface NavItem {
+  id: number;
   name: string;
   path: string;
+  i18nKey?: string;
+  order: number;
+  type: number; // 1: 内部, 2: 外部
+  children?: NavItem[];
 }
 
 export const useNavStore = defineStore('nav', () => {
@@ -11,21 +16,17 @@ export const useNavStore = defineStore('nav', () => {
   const isLoaded = ref(false);
 
   const fetchNavData = async () => {
-    // 如果已经加载过，且不是强制刷新，则直接返回缓存
     if (isLoaded.value && navItems.value.length > 0) return;
 
     try {
-      // 模拟 API 调用
-      const mockData: NavItem[] = [
-        { name: '首页', path: '/' },
-        { name: '游戏轨迹', path: '/game' },
-        { name: '知识智库', path: '/knowledge' },
-        { name: '资源宝库', path: '/resource' },
-      ];
+      // 对接真实 API
+      const response = await fetch('/api/public-menu/tree');
+      const resData = await response.json();
 
-      navItems.value = mockData;
-      isLoaded.value = true;
-      console.log('Nav data fetched from API and cached in Pinia.');
+      if (resData.code === 200) {
+        navItems.value = resData.data;
+        isLoaded.value = true;
+      }
     } catch (error) {
       console.error('Failed to fetch nav data:', error);
     }

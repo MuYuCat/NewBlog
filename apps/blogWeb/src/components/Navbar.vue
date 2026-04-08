@@ -1,32 +1,24 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { getPinia } from '../store/index';
-import { useNavStore } from '../store/nav';
+import { useNavStore, type NavItem } from '../store/nav';
 import { useI18n } from '../hooks/useI18n';
 
-const navItems = ref<any[]>([]);
+const navItems = ref<NavItem[]>([]);
 const currentPath = ref('');
-const isMoreMenuOpen = ref(false);
-const { t } = useI18n();
+const activeDropdownId = ref<number | null>(null);
+const { t, lang } = useI18n();
 
 /**
- * 映射后端/Store返回的中文名称到词库 Key
+ * 极简翻译逻辑：
+ * 中文模式 (zh) -> 直接取后台填写的中文名 (item.name)
+ * 英文模式 (en) -> 取后台填写的英文标识 (item.i18nKey)，若为空则回退到 name
  */
-const getNavName = (name: string) => {
-  const keyMap: Record<string, string> = {
-    首页: '导航.首页',
-    游戏轨迹: '导航.游戏轨迹',
-    知识智库: '导航.知识智库',
-    资源宝库: '导航.资源宝库',
-    更多: '导航.更多',
-    归档: '导航.归档',
-  };
-
-  const key = keyMap[name];
-  // 显式映射，如果不在映射表里，则尝试直接翻译或原样返回
-  if (key) return t(key);
-
-  return t(`导航.${name}`);
+const getLabel = (item: NavItem) => {
+  if (lang.value === 'zh') {
+    return item.name;
+  }
+  return item.i18nKey || item.name;
 };
 
 const updatePath = () => {
@@ -40,7 +32,6 @@ onMounted(async () => {
   try {
     const pinia = getPinia();
     const navStore = useNavStore(pinia);
-
     await navStore.fetchNavData();
     navItems.value = navStore.navItems;
   } catch (err) {
@@ -56,26 +47,25 @@ onUnmounted(() => {
 <template>
   <nav class="navbar">
     <div class="nav-list">
-      <!-- 动态路由 -->
-      <a
-        v-for="item in navItems"
-        :key="item.path"
-        :href="item.path"
-        class="nav-item"
-        :class="{ active: currentPath === item.path }"
-      >
-        {{ getNavName(item.name) }}
-      </a>
-
-      <!-- “更多”入口 -->
       <div
-        class="more-wrapper"
-        @mouseenter="isMoreMenuOpen = true"
-        @mouseleave="isMoreMenuOpen = false"
+        v-for="item in navItems"
+        :key="item.id"
+        class="nav-wrapper"
+        @mouseenter="activeDropdownId = item.id"
+        @mouseleave="activeDropdownId = null"
       >
-        <div class="nav-item more-btn" :class="{ active: currentPath.includes('/archive') }">
-          {{ getNavName('更多') }}
+        <!-- 一级菜单 -->
+        <a
+          :href="item.path"
+          class="nav-item"
+          :class="{
+            active: currentPath === item.path || item.children?.some((c) => c.path === currentPath),
+          }"
+          :target="item.type === 2 ? '_blank' : '_self'"
+        >
+          {{ getLabel(item) }}
           <svg
+            v-if="item.children?.length"
             xmlns="http://www.w3.org/2000/svg"
             width="12"
             height="12"
@@ -89,27 +79,20 @@ onUnmounted(() => {
           >
             <path d="m6 9 6 6 6-6" />
           </svg>
-        </div>
+        </a>
 
+        <!-- 二级下拉菜单 -->
         <transition name="popover">
-          <div v-if="isMoreMenuOpen" class="popover-menu">
-            <a href="/archive" class="menu-item" :class="{ active: currentPath === '/archive' }">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8" />
-                <path d="M23 3H1v5h22V3z" />
-                <path d="M10 12h4" />
-              </svg>
-              {{ getNavName('归档') }}
+          <div v-if="item.children?.length && activeDropdownId === item.id" class="popover-menu">
+            <a
+              v-for="child in item.children"
+              :key="child.id"
+              :href="child.path"
+              class="menu-item"
+              :class="{ active: currentPath === child.path }"
+              :target="child.type === 2 ? '_blank' : '_self'"
+            >
+              {{ getLabel(child) }}
             </a>
           </div>
         </transition>
@@ -124,6 +107,11 @@ onUnmounted(() => {
     display: flex;
     align-items: center;
     gap: 2.5rem;
+  }
+
+  .nav-wrapper {
+    position: relative;
+    padding-bottom: 4px;
   }
 
   .nav-item {
@@ -173,22 +161,17 @@ onUnmounted(() => {
     }
   }
 
-  .more-wrapper {
-    position: relative;
-    padding-bottom: 4px; // 扩大悬浮桥接区
-
-    &:hover .chevron {
-      transform: rotate(180deg);
-      opacity: 1;
-    }
+  .nav-wrapper:hover .chevron {
+    transform: rotate(180deg);
+    opacity: 1;
   }
 }
 
-/* Popover Menu 样式 - 统一玻璃磨砂感 */
 .popover-menu {
   position: absolute;
   top: calc(100% + 12px);
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   background: var(--bg);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -236,7 +219,6 @@ onUnmounted(() => {
   }
 }
 
-/* 动画过渡 */
 .popover-enter-active,
 .popover-leave-active {
   transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
@@ -244,7 +226,7 @@ onUnmounted(() => {
 .popover-enter-from,
 .popover-leave-to {
   opacity: 0;
-  transform: translateY(10px) scale(0.95);
+  transform: translateX(-50%) translateY(10px) scale(0.95);
 }
 
 :global(.dark) {
