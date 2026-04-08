@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma.service';
 
 @Module({
   imports: [
+    ConfigModule, // 确保 ConfigModule 可用
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -18,7 +19,8 @@ import { PrismaService } from '../prisma.service';
       }),
     }),
   ],
-  providers: [AuthService, PrismaService],
+  providers: [AuthService, PrismaService, ConfigService],
   controllers: [AuthController],
+  exports: [AuthService],
 })
 export class AuthModule {}

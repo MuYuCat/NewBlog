@@ -1,0 +1,254 @@
+/* 全局弹窗重写 - 解决 AntD Modal 默认样式问题 */
+.elite-glass-modal {
+  .ant-modal-content {
+    padding: 0 !important;
+    border-radius: 32px !important;
+    overflow: hidden;
+    background: rgba(var(--bg-rgb, 255, 255, 255), 0.8) !important;
+    backdrop-filter: blur(40px) !important;
+    border: 1px solid rgba(var(--text-rgb, 255, 255, 255), 0.1);
+    box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.2) !important;
+  }
+}
+
+.show-qrcode {
+  margin-top: 1rem;
+}
+
+.qr-preview {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.dark .elite-glass-modal .ant-modal-content {
+  background: rgba(10, 10, 12, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.security-modal-body {
+  padding: 1.5rem;
+  max-height: 80vh;
+  overflow-y: auto;
+
+  /* 用户头部 */
+  .profile-header {
+    text-align: center;
+
+    .avatar-orbit {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 1rem;
+
+      .avatar-core {
+        border: 4px solid #8a2be211;
+        padding: 5px;
+        background: #fff;
+        box-shadow: 0 15px 30px -10px rgba(138, 43, 226, 0.3);
+      }
+
+      .shield-icon {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        background: #52c41a;
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid var(--colorBgContainer);
+        font-size: 14px;
+      }
+    }
+
+    .username-serif {
+      margin: 0 !important;
+      font-family: 'Cormorant Garamond', serif !important;
+      font-weight: 700;
+      font-size: 2.4rem !important;
+    }
+
+    .role-display {
+      opacity: 0.4;
+      letter-spacing: 0.2em;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+  }
+
+  /* 评分面板 */
+  .security-dashboard {
+    background: rgba(var(--text-color-rgb), 0.02);
+    border-radius: 24px;
+    padding: 2rem;
+    border: 1px solid rgba(var(--text-color-rgb), 0.04);
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .score-value {
+        font-weight: 900;
+        font-size: 0.8rem;
+        letter-spacing: 0.1em;
+        padding: 6px 16px;
+        border-radius: 30px;
+
+        &.high {
+          background: #52c41a15;
+          color: #52c41a;
+          border: 1px solid #52c41a33;
+        }
+        &.medium {
+          background: #faad1415;
+          color: #faad14;
+          border: 1px solid #faad1433;
+        }
+      }
+    }
+  }
+
+  /* 凭证卡片 */
+  .credential-card {
+    // margin-top: 2rem;
+    background: rgba(var(--text-color-rgb), 0.03);
+    border-radius: 20px;
+    padding: 1rem 1rem 0 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    border: 1px dashed rgba(var(--text-color-rgb), 0.1);
+
+    .qr-img {
+      width: 180px;
+      height: 180px;
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px;
+    }
+  }
+
+  /* 6位方框组件样式 */
+  .elite-digit-container {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+
+    .elite-digit-box {
+      width: 44px;
+      height: 54px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      border-radius: 12px;
+      border: 2px solid rgba(var(--text-color-rgb), 0.1);
+      background: rgba(var(--text-color-rgb), 0.03);
+      outline: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: inherit;
+
+      &:focus {
+        border-color: #8a2be2;
+        background: rgba(138, 43, 226, 0.05);
+        box-shadow: 0 0 15px rgba(138, 43, 226, 0.2);
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  /* 编辑模式 */
+  .nav-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    // margin-bottom: 3rem;
+    .nav-title {
+      margin: 0 !important;
+      font-size: 1.3rem !important;
+    }
+  }
+
+  .form-glass-card {
+    background: rgba(var(--text-color-rgb), 0.02);
+    padding: 1rem;
+    border-radius: 20px;
+    border: 1px solid rgba(var(--text-color-rgb), 0.04);
+
+    .card-header {
+      font-weight: 700;
+      color: #8a2be2;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  }
+
+  .setup-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 1.5rem;
+    align-items: center;
+
+    img {
+      width: 140px;
+      height: 140px;
+      border-radius: 8px;
+      border: 1px solid rgba(var(--text-color-rgb), 0.05);
+    }
+  }
+
+  .footer-action-bar {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+    border-top: 1px solid rgba(var(--text-color-rgb), 0.05);
+    // padding-top: 2rem;
+  }
+}
+
+/* 按钮通用样式微调 */
+.elite-security-modal {
+  .ant-btn-primary {
+    box-shadow: 0 8px 20px -4px rgba(138, 43, 226, 0.4);
+    height: 48px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  .action-stack .ant-btn {
+    height: 52px;
+    border-radius: 14px;
+  }
+}
+
+/* 动画效果 */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease;
+}
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

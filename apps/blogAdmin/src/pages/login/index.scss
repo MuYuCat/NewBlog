@@ -11,10 +11,10 @@
   &.light {
     background-color: #fcfcfc;
     .glow-1 {
-      bg-color: rgba(138, 43, 226, 0.05);
+      background: rgba(138, 43, 226, 0.05);
     }
     .glow-2 {
-      bg-color: rgba(0, 102, 204, 0.02);
+      background: rgba(0, 102, 204, 0.02);
     }
   }
 
@@ -60,6 +60,7 @@
     height: 640px;
     display: flex;
     margin: 0 1.5rem;
+    align-items: center;
   }
 
   .brand-side {
@@ -71,14 +72,6 @@
       justify-content: center;
       padding: 4rem;
       text-align: left;
-    }
-
-    .brand-logo {
-      width: 4.5rem;
-      height: 4.5rem;
-      object-fit: contain;
-      margin-bottom: 2rem;
-      opacity: 0.95;
     }
 
     .divider {
@@ -100,6 +93,7 @@
         line-height: 1.8;
         opacity: 0.6;
         letter-spacing: 0.15em;
+        display: block;
       }
     }
   }
@@ -139,72 +133,31 @@
       border-color: rgba(255, 255, 255, 0.08);
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
     }
-  }
 
-  .theme-toggle {
-    position: absolute;
-    top: 2rem;
-    right: 2rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(var(--text-color-rgb), 0.1);
-    cursor: pointer;
-    transition: all 0.3s;
-    background: rgba(var(--text-color-rgb), 0.03);
-    color: var(--accent-color);
+    .theme-toggle {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(var(--text-color-rgb), 0.1);
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(var(--text-color-rgb), 0.03);
+      color: #8a2be2;
 
-    &:hover {
-      background: rgba(var(--text-color-rgb), 0.08);
-      transform: scale(1.05);
-    }
-  }
-
-  /* 核心输入框样式 - 彻底解决高度与背景兼容性 */
-  .custom-input {
-    margin-bottom: 1.5rem;
-
-    :global {
-      .ant-input-affix-wrapper,
-      .ant-input-password {
-        height: 56px !important;
-        padding: 0 1.25rem !important;
-        border-radius: 18px !important;
-        background: rgba(var(--text-color-rgb), 0.03) !important;
-        border: 1px solid rgba(var(--text-color-rgb), 0.06) !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-
-        &:hover,
-        &.ant-input-affix-wrapper-focused,
-        &.ant-input-password-focused {
-          background: #fff !important;
-          border-color: #8a2be2 !important;
-          box-shadow: 0 8px 25px rgba(138, 43, 226, 0.08) !important;
-        }
-
-        .ant-input {
-          background: transparent !important;
-          font-size: 0.95rem !important;
-          height: 100% !important;
-        }
+      &:hover {
+        background: rgba(var(--text-color-rgb), 0.08);
+        transform: scale(1.05);
       }
     }
   }
 
-  :global(.dark) {
-    .custom-input :global(.ant-input-affix-wrapper) {
-      &:hover,
-      &.ant-input-affix-wrapper-focused {
-        background: rgba(255, 255, 255, 0.08) !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
-      }
-    }
-  }
-
-  .elite-submit-btn {
+  .elite-btn {
     height: 56px !important;
     border-radius: 18px !important;
     background: #8a2be2 !important;
@@ -214,6 +167,8 @@
     letter-spacing: 0.25em !important;
     box-shadow: 0 12px 30px rgba(138, 43, 226, 0.25) !important;
     transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1) !important;
+    margin-top: 1rem;
+    color: white;
 
     &:hover {
       transform: translateY(-3px);
@@ -223,6 +178,41 @@
 
     &:active {
       transform: translateY(-1px);
+    }
+  }
+
+  // 6位方框验证码样式 - 增强居中与交互
+  .digit-input-container {
+    display: flex;
+    justify-content: center; // 强制水平居中
+    align-items: center;
+    gap: 12px;
+    margin: 1rem 0 2.5rem; // 增加间距让视觉更平衡
+    width: 100%;
+
+    .digit-box {
+      width: 46px;
+      height: 56px;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 600;
+      border-radius: 12px;
+      border: 2px solid rgba(var(--text-color-rgb), 0.1);
+      background: rgba(var(--text-color-rgb), 0.03);
+      color: inherit;
+      outline: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &:focus {
+        border-color: #8a2be2;
+        background: rgba(138, 43, 226, 0.05);
+        box-shadow: 0 0 12px rgba(138, 43, 226, 0.2);
+        transform: translateY(-2px);
+      }
+
+      &::placeholder {
+        opacity: 0.2;
+      }
     }
   }
 }

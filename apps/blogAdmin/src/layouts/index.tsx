@@ -1,5 +1,15 @@
 import { history, Outlet, useModel, useLocation } from '@umijs/max';
-import { Layout, Menu, Button, Avatar, Modal, ConfigProvider, theme } from 'antd';
+import {
+  Layout,
+  Menu,
+  Button,
+  Avatar,
+  Modal,
+  Popconfirm,
+  ConfigProvider,
+  theme,
+  Typography,
+} from 'antd';
 import {
   UserOutlined,
   LogoutOutlined,
@@ -12,7 +22,8 @@ import {
   FolderOpenOutlined,
   LineChartOutlined,
 } from '@ant-design/icons';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
+import SecurityModal from '@/components/SecurityModal';
 
 // 导入 PITAO 系列头像
 import pitao01 from '@/assets/PITAO-baomao.png';
@@ -63,7 +74,6 @@ const PITAO_AVATARS = [
   pitao18,
   pitao19,
 ];
-const RANDOM_AVATAR = PITAO_AVATARS[Math.floor(Math.random() * PITAO_AVATARS.length)];
 
 const MainLayout: React.FC = () => {
   const { initialState, setInitialState } = useModel('@@initialState');
@@ -71,7 +81,12 @@ const MainLayout: React.FC = () => {
   const navTheme = initialState?.settings?.navTheme || 'light';
   const isDark = navTheme === 'dark';
 
-  // 极致同步逻辑
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
+
+  const sessionAvatar = useMemo(() => {
+    return PITAO_AVATARS[Math.floor(Math.random() * PITAO_AVATARS.length)];
+  }, []);
+
   useEffect(() => {
     const root = document.documentElement;
     if (isDark) {
@@ -82,22 +97,16 @@ const MainLayout: React.FC = () => {
       root.setAttribute('data-theme', 'light');
     }
 
-    if (!initialState?.isLoggedIn && location.pathname !== '/login') {
+    // 核心逻辑修复：双保险重定向机制
+    const token = localStorage.getItem('admin-token');
+    // 只有在【既没有登录态】且【本地也没有有效 token】的情况下，且不在登录页，才跳转
+    if (!initialState?.isLoggedIn && !token && location.pathname !== '/login') {
       history.push('/login');
     }
   }, [isDark, initialState?.isLoggedIn, location.pathname]);
 
   const toggleTheme = () => {
     const newTheme = isDark ? 'light' : 'dark';
-
-    // 立即反馈：在 React 状态更新前先修改 DOM 类名
-    const root = document.documentElement;
-    if (newTheme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-
     localStorage.setItem('admin-theme', newTheme);
     setInitialState((s: any) => ({
       ...s,
@@ -114,10 +123,9 @@ const MainLayout: React.FC = () => {
     { key: '/analytics', label: '日志管理', icon: <LineChartOutlined /> },
   ];
 
-  // 共享样式配置
   const themeConfig = {
     algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-    cssVar: true, // 开启 CSS 变量模式，大幅提升切换性能
+    cssVar: true,
     token: {
       colorPrimary: isDark ? '#ffffff' : '#8a2be2',
       borderRadius: 16,
@@ -163,9 +171,9 @@ const MainLayout: React.FC = () => {
           />
 
           <div className="sidebar-footer">
-            <div className="sidebar-profile">
+            <div className="sidebar-profile" onClick={() => setIsSecurityModalOpen(true)}>
               <Avatar
-                src={initialState?.currentUser?.avatar || RANDOM_AVATAR}
+                src={initialState?.currentUser?.avatar || sessionAvatar}
                 icon={<UserOutlined />}
                 className="profile-avatar"
               />
@@ -177,24 +185,31 @@ const MainLayout: React.FC = () => {
               </div>
             </div>
             <div className="logout-btn-container">
-              <Button
-                icon={<LogoutOutlined />}
-                className="logout-btn"
-                onClick={() => {
-                  Modal.confirm({
-                    title: '确认退出',
-                    content: '确定要退出管理系统吗？',
-                    onOk: () => {
-                      localStorage.removeItem('admin-token');
-                      setInitialState((s: any) => ({ ...s, isLoggedIn: false }));
-                      history.push('/login');
-                    },
-                  });
+              <Popconfirm
+                title="确认退出系统"
+                description="确定要退出管理系统吗？"
+                onConfirm={() => {
+                  localStorage.removeItem('admin-token');
+                  setInitialState((s: any) => ({
+                    ...s,
+                    isLoggedIn: false,
+                    currentUser: undefined,
+                  }));
+                  history.push('/login');
                 }}
-                ghost
+                okText="安全退出"
+                cancelText="点错了"
+                placement="rightBottom"
+                okButtonProps={{
+                  danger: true,
+                  className: 'popconfirm-ok-btn',
+                }}
+                overlayClassName="elite-popconfirm"
               >
-                安全退出
-              </Button>
+                <Button icon={<LogoutOutlined />} className="logout-btn" ghost>
+                  安全退出
+                </Button>
+              </Popconfirm>
             </div>
           </div>
         </Sider>
@@ -205,6 +220,12 @@ const MainLayout: React.FC = () => {
           </Content>
         </Layout>
       </Layout>
+
+      <SecurityModal
+        visible={isSecurityModalOpen}
+        avatar={sessionAvatar}
+        onCancel={() => setIsSecurityModalOpen(false)}
+      />
     </ConfigProvider>
   );
 };

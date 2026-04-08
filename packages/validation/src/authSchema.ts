@@ -20,5 +20,13 @@ export const RegisterSchema = LoginSchema.extend({
   path: ['confirmPassword'],
 });
 
+/**
+ * 2FA 动态码校验 Schema
+ */
+export const TwoFactorSchema = z.object({
+  token: z.string().length(6, '请输入 6 位动态验证码').regex(/^\d+$/, '只能包含数字'),
+});
+
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type RegisterInput = z.infer<typeof RegisterSchema>;
+export type TwoFactorInput = z.infer<typeof TwoFactorSchema>;

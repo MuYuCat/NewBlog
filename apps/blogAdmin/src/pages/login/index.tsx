@@ -1,26 +1,103 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, message, Typography, ConfigProvider, theme as antdTheme } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Form,
+  Input,
+  Button,
+  message,
+  Typography,
+  ConfigProvider,
+  theme as antdTheme,
+  Space,
+} from 'antd';
 import {
   UserOutlined,
   LockOutlined,
   ArrowRightOutlined,
   SunOutlined,
   MoonOutlined,
+  ArrowLeftOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useModel, request } from '@umijs/max';
-import { LoginSchema } from '@newblog/validation';
+import { LoginSchema, TwoFactorSchema } from '@newblog/validation';
 import { gsap } from 'gsap';
 import './index.scss';
 
 const { Title, Text } = Typography;
 
+/**
+ * 6 位分体式验证码组件 - 完美居中交互版
+ */
+const DigitInput: React.FC<{ value?: string; onChange?: (val: string) => void }> = ({
+  value = '',
+  onChange,
+}) => {
+  const [digits, setDigits] = useState<string[]>(new Array(6).fill(''));
+  const inputs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (value === '') setDigits(new Array(6).fill(''));
+  }, [value]);
+
+  const handleChange = (val: string, index: number) => {
+    const newVal = val.replace(/[^0-9]/g, '').slice(-1);
+    const newDigits = [...digits];
+    newDigits[index] = newVal;
+    setDigits(newDigits);
+    const result = newDigits.join('');
+    onChange?.(result);
+
+    if (newVal && index < 5) {
+      inputs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === 'Backspace' && !digits[index] && index > 0) {
+      inputs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const pasteData = e.clipboardData
+      .getData('text')
+      .replace(/[^0-9]/g, '')
+      .slice(0, 6);
+    if (pasteData) {
+      const newDigits = pasteData.split('').concat(new Array(6 - pasteData.length).fill(''));
+      setDigits(newDigits);
+      onChange?.(newDigits.join(''));
+      inputs.current[Math.min(pasteData.length, 5)]?.focus();
+    }
+  };
+
+  return (
+    <div className="digit-input-container" onPaste={handlePaste}>
+      {digits.map((d, i) => (
+        <input
+          key={i}
+          ref={(el) => (inputs.current[i] = el)}
+          value={d}
+          placeholder="0"
+          onChange={(e) => handleChange(e.target.value, i)}
+          onKeyDown={(e) => handleKeyDown(e, i)}
+          maxLength={1}
+          className="digit-box"
+        />
+      ))}
+    </div>
+  );
+};
+
 const LoginPage: React.FC = () => {
   const [form] = Form.useForm();
+  const [twoFactorForm] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
   const [isDark, setIsDark] = useState(false);
+  const [step, setStep] = useState<'login' | '2fa'>('login');
+  const [tempUserId, setTempUserId] = useState<number | null>(null);
   const navigate = useNavigate();
-  const { setInitialState } = useModel('@@initialState');
+  const { initialState, setInitialState } = useModel('@@initialState');
 
-  // 初始化主题检查
   useEffect(() => {
     const savedTheme = localStorage.getItem('admin-theme');
     if (
@@ -29,8 +106,6 @@ const LoginPage: React.FC = () => {
     ) {
       setIsDark(true);
     }
-
-    // 入场动画
     gsap.fromTo(
       '.login-card',
       { opacity: 0, x: 40, filter: 'blur(10px)' },
@@ -49,61 +124,78 @@ const LoginPage: React.FC = () => {
     localStorage.setItem('admin-theme', next ? 'dark' : 'light');
   };
 
+  const handleLoginSuccess = async (data: any, loadingKey: string) => {
+    messageApi.success({ content: '身份验证成功，正在同步空间...', key: loadingKey });
+
+    // 1. 先存 Token，保证后续请求合法
+    localStorage.setItem('admin-token', data.access_token);
+
+    // 2. 核心修复：必须 await 同步状态，并保留旧状态防止回弹
+    await setInitialState((s: any) => ({
+      ...s,
+      isLoggedIn: true,
+      currentUser: data.user,
+    }));
+
+    // 3. 状态确定后再跳转
+    navigate('/dashboard');
+  };
+
   const handleSubmit = async (values: any) => {
-    const result = LoginSchema.safeParse(values);
-    if (!result.success) {
-      message.error(result.error.errors[0].message);
-      return;
-    }
+    const validation = LoginSchema.safeParse(values);
+    if (!validation.success) return messageApi.error(validation.error.errors[0].message);
 
     const loadingKey = 'login-loading';
-    message.loading({ content: '身份验证中...', key: loadingKey });
+    messageApi.loading({ content: '身份验证中...', key: loadingKey });
 
     try {
-      // 现在的 request 直接返回了后端的 data 字段
-      const res = await request('/auth/login', {
-        method: 'POST',
-        data: values,
-      });
-
-      if (res.access_token) {
-        message.success({ content: '欢迎回来，管理员。', key: loadingKey });
-        localStorage.setItem('admin-token', res.access_token);
-
-        // 更新全局状态
-        setInitialState({
-          isLoggedIn: true,
-          currentUser: {
-            username: res.user.username,
-            avatar: res.user.avatar,
-            role: res.user.role,
-          },
-        });
-
-        navigate('/dashboard');
+      const res = await request('/auth/login', { method: 'POST', data: values });
+      if (res.require2FA) {
+        messageApi.destroy(loadingKey);
+        setTempUserId(res.userId);
+        setStep('2fa');
+        gsap.fromTo(
+          '.login-card-inner',
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
+        );
+      } else {
+        await handleLoginSuccess(res, loadingKey);
       }
-    } catch (error: any) {
-      // error 已经被拦截器处理并 message.error 了，这里只需停止 loading
-    }
+    } catch (e) {}
+  };
+
+  const handle2FASubmit = async (values: { token: string }) => {
+    const validation = TwoFactorSchema.safeParse(values);
+    if (!validation.success) return messageApi.error(validation.error.errors[0].message);
+
+    const loadingKey = '2fa-loading';
+    messageApi.loading({ content: '正在校验安全令牌...', key: loadingKey });
+
+    try {
+      const res = await request('/auth/2fa/verify', {
+        method: 'POST',
+        data: { userId: tempUserId, token: values.token },
+      });
+      await handleLoginSuccess(res, loadingKey);
+    } catch (e) {}
   };
 
   return (
     <ConfigProvider
       theme={{
         algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
-        token: {
-          colorPrimary: '#8a2be2',
-          borderRadius: 16,
-        },
+        token: { colorPrimary: '#8a2be2', borderRadius: 16 },
       }}
     >
+      {contextHolder}
       <div
         className={`login-container ${isDark ? 'dark' : 'light'}`}
         style={
           {
             '--text-color-rgb': isDark ? '255, 255, 255' : '0, 0, 0',
             '--accent-color': '#8a2be2',
-          } as React.CSSProperties
+          } as any
         }
       >
         {/* 背景动态光晕 */}
@@ -111,7 +203,6 @@ const LoginPage: React.FC = () => {
         <div className="glow-orb glow-2" />
 
         <div className="login-content">
-          {/* 左侧：品牌展示 (仅在大屏幕显示) */}
           <div className="brand-side">
             <Title
               style={{
@@ -131,76 +222,88 @@ const LoginPage: React.FC = () => {
               <Text className="slogan-line">于喧嚣之外，管理这一方静谧的数字净土。</Text>
             </div>
           </div>
-
-          {/* 右侧：登录卡片 */}
           <div className="login-card-wrapper">
             <div className={`login-card ${isDark ? 'dark-card' : 'light-card'}`}>
-              {/* 主题切换开关 */}
               <button onClick={toggleTheme} className="theme-toggle">
                 {isDark ? <SunOutlined /> : <MoonOutlined />}
               </button>
+              <div className="login-card-inner">
+                {step === 'login' ? (
+                  <Form form={form} onFinish={handleSubmit} layout="vertical">
+                    <Title
+                      level={2}
+                      style={{ fontFamily: "'Noto Serif SC', serif", marginBottom: '2.5rem' }}
+                    >
+                      管理员登录
+                    </Title>
+                    <Form.Item name="username">
+                      <Input
+                        size="large"
+                        placeholder="管理账号"
+                        prefix={<UserOutlined style={{ opacity: 0.3 }} />}
+                        style={{ height: '50px' }}
+                      />
+                    </Form.Item>
+                    <Form.Item name="password">
+                      <Input.Password
+                        size="large"
+                        placeholder="安全密钥"
+                        prefix={<LockOutlined style={{ opacity: 0.3 }} />}
+                        style={{ height: '50px' }}
+                      />
+                    </Form.Item>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      block
+                      size="large"
+                      className="elite-btn"
+                    >
+                      登入系统 <ArrowRightOutlined />
+                    </Button>
+                  </Form>
+                ) : (
+                  <Form form={twoFactorForm} onFinish={handle2FASubmit} layout="vertical">
+                    <Title
+                      level={2}
+                      style={{ fontFamily: "'Noto Serif SC', serif", marginBottom: '1rem' }}
+                    >
+                      双重认证
+                    </Title>
+                    <Text
+                      type="secondary"
+                      style={{ display: 'block', marginBottom: '2.5rem', fontSize: '0.85rem' }}
+                    >
+                      请输入 TOTP App 提供的 6 位动态验证码
+                    </Text>
 
-              <div style={{ marginBottom: '3rem' }}>
-                <Title
-                  level={2}
-                  style={{
-                    fontFamily: "'Noto Serif SC', serif",
-                    fontWeight: 500,
-                    fontSize: '2rem',
-                    marginBottom: '8px',
-                  }}
-                >
-                  管理员登录
-                </Title>
-                <Text
-                  type="secondary"
-                  style={{
-                    letterSpacing: '0.2em',
-                    textTransform: 'uppercase',
-                    fontSize: '0.7rem',
-                    opacity: 0.6,
-                  }}
-                >
-                  Admin Authentication
-                </Text>
+                    <Form.Item name="token" style={{ marginBottom: 0 }}>
+                      <DigitInput />
+                    </Form.Item>
+
+                    <Space direction="vertical" style={{ width: '100%', marginTop: '1rem' }}>
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        block
+                        size="large"
+                        className="elite-btn"
+                      >
+                        确认并登入
+                      </Button>
+                      <Button
+                        type="link"
+                        block
+                        onClick={() => setStep('login')}
+                        icon={<ArrowLeftOutlined />}
+                        style={{ color: 'inherit', opacity: 0.5, marginTop: '1rem' }}
+                      >
+                        返回常规登录
+                      </Button>
+                    </Space>
+                  </Form>
+                )}
               </div>
-
-              <Form form={form} onFinish={handleSubmit} layout="vertical" requiredMark={false}>
-                <Form.Item name="username" className="custom-input">
-                  <Input
-                    size="large"
-                    placeholder="管理账号"
-                    allowClear
-                    prefix={<UserOutlined style={{ opacity: 0.3, marginRight: '12px' }} />}
-                  />
-                </Form.Item>
-
-                <Form.Item name="password" className="custom-input">
-                  <Input.Password
-                    size="large"
-                    placeholder="安全密钥"
-                    allowClear
-                    prefix={<LockOutlined style={{ opacity: 0.3, marginRight: '12px' }} />}
-                  />
-                </Form.Item>
-
-                <div
-                  style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '2.5rem' }}
-                >
-                  <a
-                    style={{ fontSize: '0.8rem', color: '#8a2be2', fontWeight: 500, opacity: 0.8 }}
-                  >
-                    重置密钥
-                  </a>
-                </div>
-
-                <Form.Item style={{ marginBottom: 0 }}>
-                  <Button type="primary" htmlType="submit" block className="elite-submit-btn">
-                    确认登入
-                    <ArrowRightOutlined style={{ marginLeft: '8px' }} />
-                  </Button>
-                </Form.Item>
-              </Form>
             </div>
           </div>
         </div>

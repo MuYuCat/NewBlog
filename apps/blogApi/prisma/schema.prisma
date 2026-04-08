@@ -8,17 +8,19 @@ datasource db {
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  username  String     @unique
-  password  String
-  email     String?    @unique
-  avatar    String?
-  role      String     @default("USER")
-  status    Int        @default(1)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  bookmarks Bookmark[]
-  docs      Doc[]
+  id                 Int        @id @default(autoincrement())
+  username           String     @unique
+  password           String
+  email              String?    @unique
+  avatar             String?
+  role               String     @default("USER")
+  status             Int        @default(1)
+  twoFactorSecret    String?    // TOTP 密钥
+  isTwoFactorEnabled Boolean    @default(false) // 是否启用 2FA
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  bookmarks          Bookmark[]
+  docs               Doc[]
 }
 
 model Game {

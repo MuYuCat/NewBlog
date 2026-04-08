@@ -11,6 +11,13 @@
   --menu-item-hover: rgba(138, 43, 226, 0.05);
   --menu-item-selected: rgba(138, 43, 226, 0.1);
 
+  // 语义化颜色
+  --error-color: #ff4d4f;
+  --error-hover: #ff7875;
+  --error-border: rgba(255, 77, 79, 0.2);
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --pure-white: #ffffff;
+
   // 统一动画曲线与时长
   --theme-transition:
     background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
@@ -27,6 +34,7 @@ html.dark {
   --menu-item-hover: rgba(255, 255, 255, 0.05);
   --menu-item-selected: rgba(255, 255, 255, 0.1);
   --primary-color: #ffffff;
+  --shadow-color: rgba(0, 0, 0, 0.4);
 }
 
 // 强制所有涉及主题变化的元素应用统一过渡
@@ -167,13 +175,13 @@ html.dark {
     .logout-btn {
       height: 44px;
       border-radius: 16px;
-      border-color: rgba(255, 77, 79, 0.2);
-      color: #ff4d4f;
+      border-color: var(--error-border);
+      color: var(--error-color);
       font-weight: 600;
       width: 100%;
       &:hover {
-        background: #ff4d4f !important;
-        color: white !important;
+        background: var(--error-color) !important;
+        color: var(--pure-white) !important;
       }
     }
   }
@@ -200,4 +208,59 @@ div[class*='ant-pro'] {
 .ant-pro-page-container-children-content {
   padding: 0 !important;
   margin: 0 !important;
+}
+
+// Elite Popconfirm - 气泡确认框深度定制
+.elite-popconfirm {
+  .ant-popover-inner {
+    background: var(--bg-sider) !important;
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border-color);
+    border-radius: 20px !important;
+    padding: 16px !important;
+    box-shadow: 0 12px 40px var(--shadow-color) !important;
+  }
+
+  .ant-popover-message-title {
+    color: var(--text-main) !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+  }
+
+  .ant-popover-message-description {
+    color: var(--text-secondary) !important;
+    margin-top: 6px !important;
+    font-size: 13px !important;
+  }
+
+  .ant-popover-buttons {
+    margin-top: 20px !important;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+
+    .ant-btn {
+      border-radius: 12px !important;
+      font-weight: 600 !important;
+      height: 36px !important;
+      padding: 0 16px !important;
+    }
+
+    .popconfirm-ok-btn {
+      background: var(--error-color) !important;
+      border-color: var(--error-color) !important;
+      color: var(--pure-white) !important;
+
+      &:hover {
+        background: var(--error-hover) !important;
+        border-color: var(--error-hover) !important;
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  // 箭头样式同步
+  .ant-popover-arrow::before {
+    background: var(--bg-sider) !important;
+  }
 }
