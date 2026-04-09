@@ -63,9 +63,29 @@ export default defineConfig({
     },
     {
       path: '/article',
-      component: './article',
       name: '文章管理',
       icon: 'read',
+      routes: [
+        {
+          path: '/article',
+          redirect: '/article/knowledge',
+        },
+        {
+          path: '/article/knowledge',
+          component: './article/knowledge',
+          name: '智库博文',
+        },
+        {
+          path: '/article/journal',
+          component: './article/journal',
+          name: '随笔日志',
+        },
+        {
+          path: '/article/category',
+          component: './article/category',
+          name: '分类管理',
+        },
+      ],
     },
     {
       path: '/vault',

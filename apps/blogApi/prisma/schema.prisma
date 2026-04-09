@@ -21,6 +21,8 @@ model User {
   updatedAt          DateTime   @updatedAt
   bookmarks          Bookmark[]
   docs               Doc[]
+  articles           Article[]
+  media              Media[]
 }
 
 model Game {
@@ -56,11 +58,72 @@ model Doc {
   @@index([parentId], map: "Doc_parentId_fkey")
 }
 
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  slug      String    @unique
+  order     Int       @default(0)
+  articles  Article[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  type        String   @default("KNOWLEDGE") // KNOWLEDGE (智库长文), JOURNAL (碎碎念日志)
+  title       String?  // 碎碎念可无标题
+  slug        String?  @unique
+  content     String   @db.LongText // HTML 内容
+  jsonContent Json?    // TipTap 结构化 JSON 内容
+  summary     String?  @db.Text
+  coverUrl    String?
+  mood        String?  // 仅 JOURNAL 使用
+  location    String?  // 仅 JOURNAL 使用
+  clicks      Int      @default(0)
+  status      Int      @default(1) // 0:草稿, 1:发布, 2:私密
+  
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
+  
+  categoryId  Int?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  
+  tags        Tag[]    @relation("ArticleTags")
+  media       Media[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([type])
+}
+
+model Media {
+  id        Int      @id @default(autoincrement())
+  fileName  String
+  fileType  String   // image/webp, image/jpeg, etc.
+  size      Int      // 字节大小
+  url       String   @unique // 访问 URL
+  path      String   // 物理路径
+  
+  articleId Int?     // 归属于哪篇文章
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([articleId])
+  @@index([userId])
+}
+
 model Tag {
   id        Int        @id @default(autoincrement())
   name      String     @unique
   color     String?    // 预设颜色值
   bookmarks Bookmark[] @relation("BookmarkTags")
+  articles  Article[]  @relation("ArticleTags")
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }

@@ -222,6 +222,7 @@ const AnalyticsPage: React.FC = () => {
             <Option value="API">业务接口</Option>
             <Option value="PAGE_WEB">前台访问</Option>
             <Option value="PAGE_ADMIN">后台访问</Option>
+            <Option value="RESOURCE_CLICK">资源点击</Option>
           </Select>
 
           {shouldShowStatus && (
@@ -305,27 +306,25 @@ const AnalyticsPage: React.FC = () => {
             : logs.map((log) => {
                 const pathInfo = renderPath(log);
                 const dt = dayjs(log.createdAt);
-                const typeLabel =
-                  log.logType === 'PAGE_WEB'
-                    ? 'WEB'
-                    : log.logType === 'PAGE_ADMIN'
-                      ? 'ADMIN'
-                      : 'API';
-                const typeClass =
-                  log.logType === 'PAGE_WEB'
-                    ? 'pv'
-                    : log.logType === 'PAGE_ADMIN'
-                      ? 'admin'
-                      : 'api';
+
+                // 映射标签显示与样式类
+                const typeMap: Record<string, { label: string; class: string }> = {
+                  PAGE_WEB: { label: 'WEB', class: 'type-web' },
+                  PAGE_ADMIN: { label: 'ADMIN', class: 'type-admin' },
+                  API: { label: 'API', class: 'type-api' },
+                  RESOURCE_CLICK: { label: 'CLICK', class: 'type-click' },
+                };
+
+                const currentType = typeMap[log.logType] || { label: 'LOG', class: 'type-other' };
 
                 return (
                   <div
                     key={log.id}
-                    className={`log-row ${typeClass} ${log.status >= 400 ? 'status-error' : 'status-success'} ${selectedLog?.id === log.id ? 'active' : ''}`}
+                    className={`log-row ${currentType.class} ${log.status >= 400 ? 'status-error' : 'status-success'} ${selectedLog?.id === log.id ? 'active' : ''}`}
                     onClick={() => openDetail(log)}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <div className="type-tag">{typeLabel}</div>
+                      <div className="type-tag">{currentType.label}</div>
                       <div className="method">{log.method}</div>
                     </div>
                     <div className="status">{log.status}</div>

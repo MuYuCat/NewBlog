@@ -16,11 +16,13 @@ import * as otplib from 'otplib';
  */
 interface IAuthenticator {
   generateSecret(): string;
+  keyuri(user: string, service: string, secret: string): string;
   verify(params: { token: string; secret: string }): boolean;
 }
 
-const { authenticator } = otplib as any;
-const auth = authenticator as IAuthenticator;
+// 适配不同版本的 otplib 导出结构
+const auth = ((otplib as any).authenticator ||
+  otplib) as unknown as IAuthenticator;
 
 export interface LoginResponse {
   access_token?: string;

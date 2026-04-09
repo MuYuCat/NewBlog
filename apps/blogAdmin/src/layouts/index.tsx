@@ -124,10 +124,25 @@ const MainLayout: React.FC = () => {
     { key: '/dashboard', label: '仪表盘', icon: <DashboardOutlined /> },
     { key: '/menu', label: '菜单管理', icon: <MenuOutlined /> },
     { key: '/game', label: '游戏管理', icon: <PlaySquareOutlined /> },
-    { key: '/article', label: '文章管理', icon: <ReadOutlined /> },
+    {
+      key: '/article',
+      label: '文章管理',
+      icon: <ReadOutlined />,
+      children: [
+        { key: '/article/knowledge', label: '智库博文' },
+        { key: '/article/journal', label: '随笔日志' },
+        { key: '/article/category', label: '分类管理' },
+      ],
+    },
     { key: '/vault', label: '资源宝库', icon: <FolderOpenOutlined /> },
     { key: '/analytics', label: '日志管理', icon: <LineChartOutlined /> },
   ];
+
+  const getActiveKey = () => {
+    const { pathname } = location;
+    if (pathname.startsWith('/article')) return ['/article', pathname];
+    return [pathname];
+  };
 
   const themeConfig = {
     algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
@@ -170,7 +185,8 @@ const MainLayout: React.FC = () => {
 
           <Menu
             mode="inline"
-            selectedKeys={[location.pathname]}
+            selectedKeys={getActiveKey()}
+            defaultOpenKeys={location.pathname.startsWith('/article') ? ['/article'] : []}
             items={menuItems}
             onClick={({ key }) => history.push(key)}
             className="color-block-menu"

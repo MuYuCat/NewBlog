@@ -121,34 +121,81 @@ body,
     flex: 1;
     overflow-y: auto;
 
-    .ant-menu-item {
-      height: 56px !important; // 增加高度
+    // 统一样式：单项与复合项标题
+    .ant-menu-item,
+    .ant-menu-submenu-title {
+      height: 56px !important;
       line-height: 56px !important;
-      margin: 8px 0 !important; // 增加间距
-      border-radius: 18px !important; // 更圆润
+      margin: 8px 0 !important;
+      border-radius: 18px !important;
       color: var(--text-secondary) !important;
-      font-weight: 600; // 增强字重
-      font-size: 15px !important; // 提升字号
+      font-weight: 600;
+      font-size: 15px !important;
       letter-spacing: 0.05em;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
       .ant-menu-item-icon {
-        font-size: 20px !important; // 图标同步放大
-      }
-
-      &.ant-menu-item-selected {
-        background: var(--menu-item-selected) !important;
-        color: var(--text-main) !important;
-        font-weight: 800;
-        .ant-menu-item-icon {
-          color: var(--primary-color) !important;
-        }
+        font-size: 20px !important;
       }
 
       &:hover {
         background: var(--menu-item-hover) !important;
         color: var(--text-main) !important;
-        transform: translateX(6px); // 增强位移反馈
+        transform: translateX(6px);
       }
+    }
+
+    // 选中状态 (MenuItem)
+    .ant-menu-item-selected {
+      background: var(--menu-item-selected) !important;
+      color: var(--text-main) !important;
+      font-weight: 800;
+      .ant-menu-item-icon {
+        color: var(--primary-color) !important;
+      }
+    }
+
+    // 复合项展开状态 (SubMenu)
+    .ant-menu-submenu-selected > .ant-menu-submenu-title {
+      color: var(--primary-color) !important;
+      font-weight: 800;
+    }
+
+    // 子菜单容器样式
+    .ant-menu-sub {
+      background: transparent !important;
+      padding-left: 12px !important; // 增加缩进增加层级感
+
+      .ant-menu-item {
+        height: 48px !important; // 子项略矮
+        line-height: 48px !important;
+        font-size: 14px !important;
+        margin: 4px 0 !important;
+        font-weight: 500;
+
+        &::before {
+          content: '';
+          position: absolute;
+          left: 12px;
+          top: 50%;
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: var(--text-secondary);
+          opacity: 0.3;
+          transform: translateY(-50%);
+        }
+
+        &:hover {
+          transform: translateX(4px);
+        }
+      }
+    }
+
+    // 修正箭头样式
+    .ant-menu-submenu-arrow {
+      color: var(--text-secondary) !important;
+      right: 20px !important;
     }
   }
 
