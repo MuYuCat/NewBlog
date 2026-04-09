@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Typography,
   Button,
@@ -17,7 +17,7 @@ import { request } from '@umijs/max';
 import { gsap } from 'gsap';
 import './index.scss';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 interface MenuItem {
   id: number;
@@ -45,7 +45,9 @@ const MenuManagement: React.FC = () => {
         const updated = res.find((m: MenuItem) => m.id === selectedMenu.id);
         setSelectedMenu(updated || null);
       }
-    } catch (e) {}
+    } catch (error) {
+      console.error('获取菜单轨道失败:', error);
+    }
   };
 
   useEffect(() => {
@@ -90,8 +92,32 @@ const MenuManagement: React.FC = () => {
       }
       setIsModalOpen(false);
       fetchMenus();
-    } catch (e) {}
+    } catch (error) {
+      console.error('节点同步失败:', error);
+    }
   };
+
+  // --- 统计数据深度计算 ---
+  const stats = useMemo(() => {
+    let total = 0;
+    let online = 0;
+    let paused = 0;
+    let subNodes = 0;
+
+    const traverse = (items: MenuItem[], isRoot = true) => {
+      items.forEach((item) => {
+        total++;
+        if (item.status === 1) online++;
+        else paused++;
+        if (!isRoot) subNodes++;
+        if (item.children && item.children.length > 0) {
+          traverse(item.children, false);
+        }
+      });
+    };
+    traverse(menus);
+    return { total, online, paused, subNodes };
+  }, [menus]);
 
   const toggleSelectMenu = (item: MenuItem) => {
     const isDeselecting = selectedMenu?.id === item.id;
@@ -146,7 +172,7 @@ const MenuManagement: React.FC = () => {
           {selectedMenu ? (
             <>
               <div className="panel-header">
-                <span className="panel-title">{selectedMenu.name} · 节点详情</span>
+                <span className="panel-title">{selectedMenu.name}</span>
                 <Space size={16}>
                   <Switch
                     checked={selectedMenu.status === 1}
@@ -154,6 +180,7 @@ const MenuManagement: React.FC = () => {
                   />
                   <Button
                     type="text"
+                    size="large"
                     shape="circle"
                     icon={<EditOutlined />}
                     onClick={() => handleEdit(selectedMenu)}
@@ -164,7 +191,13 @@ const MenuManagement: React.FC = () => {
                     okText="确定"
                     cancelText="取消"
                   >
-                    <Button type="text" danger shape="circle" icon={<DeleteOutlined />} />
+                    <Button
+                      size="large"
+                      type="text"
+                      danger
+                      shape="circle"
+                      icon={<DeleteOutlined />}
+                    />
                   </Popconfirm>
                 </Space>
               </div>
@@ -221,54 +254,83 @@ const MenuManagement: React.FC = () => {
               </div>
             </>
           ) : (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                opacity: 0.2,
-              }}
-            >
-              <Empty description="请从左侧轨道网格中选择模块" />
+            <div className="panel-body stats-panel">
+              <div className="stats-header">
+                <span className="label">矩阵概览 </span>
+              </div>
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <span className="val">{stats.total}</span>
+                  <span className="lab">节点总数</span>
+                </div>
+                <div className="stat-card">
+                  <span className="val" style={{ color: '#52c41a' }}>
+                    {stats.online}
+                  </span>
+                  <span className="lab">已发射(开启)</span>
+                </div>
+                <div className="stat-card">
+                  <span className="val" style={{ opacity: 0.4 }}>
+                    {stats.paused}
+                  </span>
+                  <span className="lab">待命(关闭)</span>
+                </div>
+                <div className="stat-card">
+                  <span className="val">{stats.subNodes}</span>
+                  <span className="lab">二级子轨道</span>
+                </div>
+              </div>
+              <div style={{ marginTop: '1rem', textAlign: 'center', opacity: 0.3 }}>
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description="请从左侧选择一个数据轨道进行配置"
+                />
+              </div>
             </div>
           )}
         </div>
       </div>
 
       <Modal
-        title={editingItem ? '编辑轨道节点' : '发射新节点'}
+        title={editingItem ? '校准节点协议' : '发射新节点'}
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
-        centered
-        width={500}
-        footer={[
-          <Button key="back" onClick={() => setIsModalOpen(false)}>
-            放弃
-          </Button>,
-          <Button key="submit" type="primary" onClick={() => form.submit()}>
-            确认发射
-          </Button>,
-        ]}
         className="elite-glass-modal"
+        width={600}
+        footer={null}
       >
         <Form form={form} layout="vertical" onFinish={onFinish}>
+          <Form.Item name="name" label="名称" rules={[{ required: true }]}>
+            <Input className="elite-input" placeholder="输入节点显示名称" />
+          </Form.Item>
+          <Form.Item name="path" label="路径" rules={[{ required: true }]}>
+            <Input className="elite-input" placeholder="例如: /dashboard" />
+          </Form.Item>
+          <Form.Item name="i18nKey" label="多语言键 (可选)">
+            <Input className="elite-input" placeholder="英文标识名" />
+          </Form.Item>
+          <Form.Item name="order" label="排序权重">
+            <InputNumber className="elite-input" style={{ width: '100%' }} />
+          </Form.Item>
           <Form.Item name="parentId" hidden>
             <Input />
           </Form.Item>
-          <Form.Item name="name" label="节点名称" rules={[{ required: true }]}>
-            <Input className="elite-input" placeholder="例如：首页" />
-          </Form.Item>
-          <Form.Item name="path" label="路由路径" rules={[{ required: true }]}>
-            <Input className="elite-input" placeholder="例如：/" />
-          </Form.Item>
-          <div style={{ display: 'flex', gap: '16px' }}>
-            <Form.Item name="i18nKey" label="英文标识 (Key / 英文名)" style={{ flex: 1.5 }}>
-              <Input className="elite-input" placeholder="例如：Home" />
-            </Form.Item>
-            <Form.Item name="order" label="排序权重" style={{ flex: 1 }}>
-              <InputNumber className="elite-input" style={{ width: '100%' }} />
-            </Form.Item>
+          <div style={{ marginTop: '2rem', display: 'flex', gap: '16px' }}>
+            <Button
+              size="large"
+              style={{ flex: 1, borderRadius: '16px' }}
+              onClick={() => setIsModalOpen(false)}
+            >
+              取消
+            </Button>
+            <Button
+              size="large"
+              type="primary"
+              style={{ flex: 1, borderRadius: '16px' }}
+              htmlType="submit"
+            >
+              同步轨道
+            </Button>
           </div>
         </Form>
       </Modal>

@@ -1,0 +1,335 @@
+.vault-management-container {
+  padding: clamp(1.5rem, 3.5vw, 3rem);
+  height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 3vh, 2.5rem);
+  overflow: hidden;
+  font-family: 'Montserrat', sans-serif;
+
+  .vault-header-glass {
+    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+
+    .title-area {
+      h2 {
+        margin: 0;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(1.8rem, 5vw, 2.8rem);
+        font-weight: 700;
+        font-style: italic;
+        color: var(--text-h);
+        line-height: 1.1;
+      }
+      span {
+        font-size: clamp(0.7rem, 1.2vw, 0.9rem);
+        color: var(--text);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        opacity: 0.4;
+      }
+    }
+
+    .action-area {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+
+      .vault-search {
+        width: 300px;
+        .ant-input-affix-wrapper {
+          height: 50px;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 0 20px;
+          &:hover,
+          &:focus {
+            border-color: var(--text);
+          }
+        }
+      }
+    }
+  }
+
+  .vault-main-content {
+    display: flex;
+    gap: 3rem;
+    flex: 1;
+    overflow: hidden;
+
+    // 左侧：资源轨道
+    .resource-track-grid {
+      flex: 1.4;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-auto-rows: 200px;
+      gap: 2rem;
+      overflow-y: auto;
+      padding: 1rem;
+      scrollbar-width: none;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+
+      .resource-card-bento {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 32px;
+        padding: 2rem;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .favicon-box {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            img {
+              width: 24px;
+              height: 24px;
+              object-fit: contain;
+            }
+          }
+
+          .status-indicator {
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            &.online {
+              color: #52c41a;
+            }
+            &.paused {
+              color: var(--text);
+              opacity: 0.3;
+            }
+          }
+        }
+
+        .card-body {
+          .card-title {
+            display: block;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-h);
+            margin-bottom: 0.2rem;
+          }
+          .card-tags {
+            font-size: 0.75rem;
+            color: var(--text);
+            opacity: 0.4;
+            letter-spacing: 0.05em;
+          }
+        }
+
+        &:hover {
+          transform: translateY(-10px);
+          border-color: var(--text);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        &.active {
+          background: var(--text);
+          border-color: var(--text);
+          .card-title {
+            color: var(--bg);
+          }
+          .card-tags {
+            color: var(--bg);
+            opacity: 0.6;
+          }
+          .favicon-box {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: transparent;
+          }
+          .status-indicator.online {
+            color: #b7eb8f;
+          }
+        }
+      }
+
+      .add-resource-placeholder {
+        border: 2px dashed var(--border);
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        color: var(--text);
+        border-radius: 32px;
+        cursor: pointer;
+        transition: all 0.4s;
+        opacity: 0.3;
+        &:hover {
+          opacity: 1;
+          border-color: var(--text);
+          background: rgba(255, 255, 255, 0.02);
+        }
+        span {
+          font-weight: 700;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 1.4rem;
+        }
+      }
+    }
+
+    // 右侧：详情玻璃面板
+    .detail-panel-glass {
+      flex: 1;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.01);
+      backdrop-filter: blur(50px);
+      border-radius: 40px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+
+      .panel-header {
+        padding: 2.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+
+        .panel-title {
+          font-size: 1.6rem;
+          font-weight: 700;
+          font-family: 'Cormorant Garamond', serif;
+          font-style: italic;
+          color: var(--text-h);
+        }
+
+        .panel-actions {
+          .ant-btn-circle {
+            width: 46px;
+            height: 46px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            &:hover {
+              border-color: var(--text);
+              color: var(--text);
+            }
+          }
+        }
+      }
+
+      .panel-body {
+        padding: 2.5rem;
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: none;
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        .detail-section {
+          margin-bottom: 3rem;
+          .section-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            opacity: 0.3;
+            margin-bottom: 1.5rem;
+            display: block;
+            font-weight: 700;
+          }
+
+          .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            .info-item {
+              display: flex;
+              justify-content: space-between;
+              padding-bottom: 1rem;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+              .label {
+                font-size: 0.9rem;
+                opacity: 0.5;
+              }
+              .value {
+                font-weight: 600;
+                font-family: 'monospace';
+              }
+            }
+          }
+
+          .category-tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            .cat-pill {
+              padding: 10px 20px;
+              background: var(--bg-card);
+              border: 1px solid var(--border);
+              border-radius: 16px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              transition: all 0.3s;
+              cursor: pointer;
+              &:hover {
+                border-color: var(--text);
+                transform: scale(1.05);
+              }
+              &.active {
+                background: var(--text);
+                color: var(--bg);
+                border-color: var(--text);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// 弹窗样式对齐
+.elite-vault-modal {
+  .ant-modal-content {
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(40px);
+    border: 1px solid var(--border);
+    border-radius: 32px !important;
+    padding: 3rem !important;
+  }
+  .ant-modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem !important;
+    font-style: italic;
+    font-weight: 700;
+    color: var(--text-h);
+  }
+  .elite-input {
+    height: 54px !important;
+    border-radius: 16px !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid var(--border) !important;
+    &:focus {
+      border-color: var(--text) !important;
+    }
+  }
+}
