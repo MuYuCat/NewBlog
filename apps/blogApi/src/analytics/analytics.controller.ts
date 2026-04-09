@@ -18,9 +18,9 @@ export class AnalyticsController {
 
   @Get('logs')
   async getLogs(
+    @Query() query: AnalyticsQuery,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @Query() query: AnalyticsQuery,
   ) {
     return this.analyticsService.getLogs(
       Number(page) || 1,

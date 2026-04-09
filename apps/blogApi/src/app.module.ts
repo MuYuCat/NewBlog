@@ -9,6 +9,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { VaultModule } from './vault/vault.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     AuthModule,
     MenuModule,
     AnalyticsModule,
+    VaultModule,
   ],
   controllers: [AppController],
   providers: [

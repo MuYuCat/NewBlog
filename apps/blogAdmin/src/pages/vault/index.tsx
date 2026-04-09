@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Button,
   Input,
@@ -12,6 +12,7 @@ import {
   Typography,
   Space,
   Empty,
+  Skeleton,
 } from 'antd';
 import {
   SearchOutlined,
@@ -22,12 +23,13 @@ import {
   FilterOutlined,
   ArrowRightOutlined,
   ThunderboltFilled,
-  CloseOutlined,
+  SyncOutlined,
 } from '@ant-design/icons';
+import { request } from '@umijs/max';
 import { gsap } from 'gsap';
 import './index.scss';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Paragraph } = Typography;
 
 // --- 系统预设色谱 ---
 const ELITE_COLORS = [
@@ -42,96 +44,116 @@ const ELITE_COLORS = [
 
 // --- 类型定义 ---
 interface VaultTag {
-  id: string;
+  id: number;
   name: string;
   color: string;
 }
 
 interface VaultResource {
-  id: string;
+  id: number;
   title: string;
   url: string;
-  tagIds: string[];
+  tags: VaultTag[];
   description?: string;
+  coverUrl?: string;
 }
 
 const VaultPage: React.FC = () => {
   const [searchText, setSearchText] = useState('');
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
-  const [resources, setResources] = useState<VaultResource[]>([
-    {
-      id: '1',
-      title: 'GSAP 官方文档与动画生态指南',
-      url: 'https://gsap.com/',
-      tagIds: ['t1', 't3'],
-      description:
-        '业界最强大的 Web 动画引擎。支持时间轴控制、SVG 变形、滚动联动等顶级动效特性，是构建高奢交互的首选方案。',
-    },
-    {
-      id: '2',
-      title: 'Astro Islands 架构深度解析',
-      url: 'https://astro.build/',
-      tagIds: ['t2'],
-      description:
-        '探索革命性的孤岛架构（Islands Architecture）。通过按需加载交互组件，实现极致的性能优化与极速的 FCP 体验。',
-    },
-    {
-      id: '3',
-      title: 'Ant Design 5.0 设计规范',
-      url: 'https://ant.design/',
-      tagIds: ['t2', 't3'],
-      description:
-        '基于 Design Token 的全新响应式设计系统。通过动态主题引擎实现高效的 UI 风格定制与全栈色彩管理。',
-    },
-  ]);
-
-  const [tags, setTags] = useState<VaultTag[]>([
-    { id: 't1', name: '动效灵感', color: 'magenta' },
-    { id: 't2', name: '前端基建', color: 'blue' },
-    { id: 't3', name: '官方文档', color: 'cyan' },
-  ]);
+  const [resources, setResources] = useState<VaultResource[]>([]);
+  const [tags, setTags] = useState<VaultTag[]>([]);
 
   const [isResModalOpen, setIsResModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
-  const [editingResId, setEditingResId] = useState<string | null>(null);
-  const [editingTagId, setEditingTagId] = useState<string | null>(null);
+  const [editingResId, setEditingResId] = useState<number | null>(null);
+  const [editingTagId, setEditingTagId] = useState<number | null>(null);
 
   const [resForm] = Form.useForm();
   const [tagForm] = Form.useForm();
 
+  const fetchTags = async () => {
+    try {
+      const res = await request('/vault/tags');
+      setTags(res);
+    } catch (error) {
+      console.error('获取维度失败:', error);
+    }
+  };
+
+  const fetchResources = async () => {
+    setLoading(true);
+    try {
+      const params: any = {};
+      if (searchText) params.search = searchText;
+      if (selectedTagIds.length > 0) params.tagIds = selectedTagIds.join(',');
+      const res = await request('/vault/bookmarks', { params });
+      setResources(res);
+    } catch (error) {
+      console.error('获取资源失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    await Promise.all([fetchTags(), fetchResources()]);
+    setTimeout(() => {
+      setSyncing(false);
+      message.success('全量索引同步完成');
+    }, 800);
+  };
+
   useEffect(() => {
+    fetchTags();
     gsap.from('.vault-header-glass', { opacity: 0, y: -20, duration: 1, ease: 'expo.out' });
-    gsap.from('.vault-resource-card', {
-      opacity: 0,
-      y: 20,
-      stagger: 0.08,
-      duration: 0.8,
-      ease: 'power2.out',
-    });
   }, []);
+
+  useEffect(() => {
+    fetchResources();
+  }, [searchText, selectedTagIds]);
 
   const openResModal = (res?: VaultResource) => {
     setEditingResId(res ? res.id : null);
-    if (res) resForm.setFieldsValue(res);
-    else resForm.resetFields();
+    if (res) {
+      resForm.setFieldsValue({
+        ...res,
+        tagIds: res.tags.map((t) => t.id),
+      });
+    } else {
+      resForm.resetFields();
+    }
     setIsResModalOpen(true);
   };
 
-  const handleSaveResource = (values: any) => {
-    if (editingResId) {
-      setResources((prev) => prev.map((r) => (r.id === editingResId ? { ...r, ...values } : r)));
-      message.success('协议同步成功');
-    } else {
-      setResources([{ id: Date.now().toString(), ...values }, ...resources]);
-      message.success('新资源已入库');
+  const handleSaveResource = async (values: any) => {
+    try {
+      if (editingResId) {
+        await request(`/vault/bookmarks/${editingResId}`, { method: 'PATCH', data: values });
+        message.success('协议同步成功');
+      } else {
+        await request('/vault/bookmarks', { method: 'POST', data: values });
+        message.success('新资源已入库');
+      }
+      setIsResModalOpen(false);
+      fetchResources();
+    } catch (error) {
+      console.error('保存资源失败:', error);
     }
-    setIsResModalOpen(false);
   };
 
-  const handleDeleteResource = (id: string) => {
-    setResources((prev) => prev.filter((r) => r.id !== id));
-    message.success('资源已移除');
+  const handleDeleteResource = async (id: number) => {
+    try {
+      await request(`/vault/bookmarks/${id}`, { method: 'DELETE' });
+      message.success('资源已移除');
+      fetchResources();
+    } catch (error) {
+      console.error('删除资源失败:', error);
+    }
   };
 
   const openTagModal = (tag?: VaultTag) => {
@@ -144,34 +166,33 @@ const VaultPage: React.FC = () => {
     setIsTagModalOpen(true);
   };
 
-  const handleSaveTag = (values: any) => {
-    if (editingTagId) {
-      // 编辑时保留原有颜色
-      const existingColor = tags.find((t) => t.id === editingTagId)?.color || 'blue';
-      const finalTag = { ...values, color: existingColor };
-      setTags((prev) => prev.map((t) => (t.id === editingTagId ? { ...t, ...finalTag } : t)));
-      message.success('维度已重构');
-    } else {
-      // 新建时随机分配预设颜色
-      const randomColor = ELITE_COLORS[Math.floor(Math.random() * ELITE_COLORS.length)].value;
-      const finalTag = { ...values, color: randomColor };
-      setTags([...tags, { id: Date.now().toString(), ...finalTag }]);
-      message.success('新维度已部署');
+  const handleSaveTag = async (values: any) => {
+    try {
+      if (editingTagId) {
+        await request(`/vault/tags/${editingTagId}`, { method: 'PATCH', data: values });
+        message.success('维度已重构');
+      } else {
+        const randomColor = ELITE_COLORS[Math.floor(Math.random() * ELITE_COLORS.length)].value;
+        await request('/vault/tags', { method: 'POST', data: { ...values, color: randomColor } });
+        message.success('新维度已部署');
+      }
+      setIsTagModalOpen(false);
+      fetchTags();
+    } catch (error) {
+      console.error('保存标签失败:', error);
     }
-    setIsTagModalOpen(false);
   };
 
-  const filteredResources = useMemo(() => {
-    return resources.filter((r) => {
-      const matchSearch =
-        r.title.toLowerCase().includes(searchText.toLowerCase()) ||
-        r.url.toLowerCase().includes(searchText.toLowerCase()) ||
-        (r.description || '').toLowerCase().includes(searchText.toLowerCase());
-      const matchTags =
-        selectedTagIds.length === 0 || selectedTagIds.every((id) => r.tagIds.includes(id));
-      return matchSearch && matchTags;
-    });
-  }, [resources, searchText, selectedTagIds]);
+  const handleDeleteTag = async (id: number) => {
+    try {
+      await request(`/vault/tags/${id}`, { method: 'DELETE' });
+      message.success('维度已抹除');
+      fetchTags();
+      fetchResources();
+    } catch (error) {
+      console.error('删除标签失败:', error);
+    }
+  };
 
   const getFavicon = (url: string) => {
     try {
@@ -187,19 +208,29 @@ const VaultPage: React.FC = () => {
       {/* 1. 顶部标题 */}
       <div className="vault-header-glass">
         <div className="title-area">
-          <Title level={2}>剪藏空间站</Title>
-          <span>NETWORK HOLOGRAPHIC ARCHIVE</span>
+          <Title level={2}>资源宝库</Title>
+          <span>剪藏空间站</span>
         </div>
         <div className="global-actions">
-          <Button
-            type="primary"
-            size="large"
-            icon={<ThunderboltFilled />}
-            onClick={() => openResModal()}
-            className="elite-launch-btn"
-          >
-            收录资源镜像
-          </Button>
+          <Space size={16}>
+            <Button
+              size="large"
+              icon={<SyncOutlined spin={syncing} />}
+              onClick={handleSync}
+              style={{ borderRadius: '16px', height: '56px', padding: '0 20px' }}
+            >
+              刷新同步
+            </Button>
+            <Button
+              type="primary"
+              size="large"
+              icon={<ThunderboltFilled />}
+              onClick={() => openResModal()}
+              className="elite-launch-btn"
+            >
+              收录资源镜像
+            </Button>
+          </Space>
         </div>
       </div>
 
@@ -226,18 +257,33 @@ const VaultPage: React.FC = () => {
               value={selectedTagIds}
               onChange={setSelectedTagIds}
               allowClear
-            />
+            >
+              {tags.map((t) => (
+                <Select.Option key={t.id} value={t.id}>
+                  {t.name}
+                </Select.Option>
+              ))}
+            </Select>
           </div>
 
           <div className="vault-resource-grid">
-            {filteredResources.length > 0 ? (
-              filteredResources.map((item) => (
+            {loading ? (
+              Array(6)
+                .fill(0)
+                .map((_, i) => (
+                  <div className="vault-resource-card" key={i}>
+                    <Skeleton active paragraph={{ rows: 3 }} />
+                  </div>
+                ))
+            ) : resources.length > 0 ? (
+              resources.map((item) => (
                 <div className="vault-resource-card" key={item.id}>
                   <div className="card-header">
                     <div className="brand-box">
                       <img
                         src={getFavicon(item.url) || ''}
                         alt="icon"
+                        onLoad={(e) => (e.currentTarget.nextElementSibling!.style.display = 'none')}
                         onError={(e) => (e.currentTarget.style.display = 'none')}
                       />
                       <GlobalOutlined className="fallback-icon" />
@@ -247,14 +293,11 @@ const VaultPage: React.FC = () => {
                         {item.title}
                       </Title>
                       <div className="tag-orbit">
-                        {item.tagIds.map((tid) => {
-                          const t = tags.find((tag) => tag.id === tid);
-                          return t ? (
-                            <Tag key={t.id} color={t.color} bordered={false}>
-                              {t.name}
-                            </Tag>
-                          ) : null;
-                        })}
+                        {item.tags.map((t) => (
+                          <Tag key={t.id} color={t.color} bordered={false}>
+                            {t.name}
+                          </Tag>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -292,7 +335,11 @@ const VaultPage: React.FC = () => {
                 </div>
               ))
             ) : (
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="轨道空旷，无匹配数据" />
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="轨道空旷，无匹配数据"
+                style={{ gridColumn: '1 / -1', marginTop: '2rem' }}
+              />
             )}
           </div>
         </div>
@@ -318,7 +365,7 @@ const VaultPage: React.FC = () => {
                     icon={<EditOutlined />}
                     onClick={() => openTagModal(tag)}
                   />
-                  <Popconfirm title="确认抹除？" onConfirm={() => message.info('仅演示')}>
+                  <Popconfirm title="确认抹除？" onConfirm={() => handleDeleteTag(tag.id)}>
                     <Button type="text" size="small" danger icon={<DeleteOutlined />} />
                   </Popconfirm>
                 </div>

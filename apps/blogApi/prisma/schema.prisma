@@ -56,17 +56,26 @@ model Doc {
   @@index([parentId], map: "Doc_parentId_fkey")
 }
 
+model Tag {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  color     String?    // 预设颜色值
+  bookmarks Bookmark[] @relation("BookmarkTags")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
 model Bookmark {
   id          Int      @id @default(autoincrement())
   url         String   @unique
   title       String
   description String?  @db.Text
   coverUrl    String?
-  categoryId  Int?
   userId      Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   user        User     @relation(fields: [userId], references: [id])
+  tags        Tag[]    @relation("BookmarkTags")
 
   @@index([userId], map: "Bookmark_userId_fkey")
 }
