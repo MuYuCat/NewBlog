@@ -8,6 +8,7 @@ const BASE_URL = import.meta.env.PUBLIC_API_URL || '/api';
 
 interface RequestOptions extends RequestInit {
   data?: any;
+  params?: Record<string, any>;
 }
 
 export async function request<T = any>(url: string, options: RequestOptions = {}): Promise<T> {
@@ -23,6 +24,19 @@ export async function request<T = any>(url: string, options: RequestOptions = {}
     Object.assign(headers, options.headers);
   }
 
+  // 处理查询参数
+  let queryString = '';
+  if (options.params) {
+    const params = new URLSearchParams();
+    Object.entries(options.params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, String(value));
+      }
+    });
+    const qs = params.toString();
+    if (qs) queryString = `?${qs}`;
+  }
+
   // 处理请求体
   let body = options.body;
   if (options.data) {
@@ -32,7 +46,7 @@ export async function request<T = any>(url: string, options: RequestOptions = {}
   // 确保 url 带有 /
   const requestUrl = url.startsWith('/') ? url : `/${url}`;
 
-  const response = await fetch(`${BASE_URL}${requestUrl}`, {
+  const response = await fetch(`${BASE_URL}${requestUrl}${queryString}`, {
     ...options,
     headers,
     body,

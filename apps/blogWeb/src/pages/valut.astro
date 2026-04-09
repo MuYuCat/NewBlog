@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import VaultView from '../views/valut/VaultView.vue';
+
+// SEO 元数据
+const title = "Vault / 资源宝库 - MuYuCat";
+const description = "收藏灵感、工具、跨领域的知识片段与高效资源，构建属于个人的数字智库。";
+---
+
+<Layout title={title} description={description}>
+  <main>
+    <VaultView client:load />
+  </main>
+</Layout>
+
+<style>
+  main {
+    background: var(--bg);
+    min-height: 100vh;
+  }
+</style>

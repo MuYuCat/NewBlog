@@ -9,13 +9,20 @@ export class VaultService {
   // --- Bookmark 业务 ---
 
   async findAllBookmarks(
-    userId: number,
-    query?: { search?: string; tagIds?: number[] },
+    userId?: number,
+    query?: { search?: string; tagIds?: number[]; sort?: 'latest' | 'hottest' },
   ) {
-    const { search, tagIds } = query || {};
+    const { search, tagIds, sort = 'latest' } = query || {};
+
+    // 排序逻辑映射
+    const orderByMap = {
+      latest: { createdAt: 'desc' as const },
+      hottest: { clicks: 'desc' as const },
+    };
+
     return this.prisma.bookmark.findMany({
       where: {
-        userId,
+        ...(userId ? { userId } : {}), // 如果传了 userId 则按用户过滤
         AND: [
           search
             ? {
@@ -38,8 +45,34 @@ export class VaultService {
       include: {
         tags: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: orderByMap[sort] || orderByMap.latest,
     });
+  }
+
+  async incrementClicks(id: number, reqInfo?: { ip: string; ua: string }) {
+    const { ip, ua } = reqInfo || {};
+
+    // 1. 增加总点击量
+    const updatedBookmark = await this.prisma.bookmark.update({
+      where: { id },
+      data: { clicks: { increment: 1 } },
+    });
+
+    // 2. 记录详细的审计日志（用于每日趋势分析）
+    await this.prisma.auditLog.create({
+      data: {
+        logType: 'RESOURCE_CLICK',
+        method: 'PATCH',
+        path: `/public/vault/bookmarks/${id}/click`,
+        status: 200,
+        ip: ip || 'unknown',
+        userAgent: ua || 'unknown',
+        duration: 0,
+        body: { bookmarkId: id, title: updatedBookmark.title },
+      },
+    });
+
+    return updatedBookmark;
   }
 
   async createBookmark(userId: number, data: CreateBookmarkDto) {
