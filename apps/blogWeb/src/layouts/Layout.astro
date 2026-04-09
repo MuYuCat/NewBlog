@@ -146,5 +146,18 @@ const { title, description = "NewBlog - 个人门户、游戏轨迹与知识智�
     <Header />
     <slot />
     <Footer />
+
+    <!-- 审计日志上报脚本 (PV/UV 埋点) -->
+    <script>
+      const reportVisit = () => {
+        const currentPath = window.location.pathname;
+        fetch(`/api/public-menu/visit?from=${encodeURIComponent(currentPath)}`, { 
+          method: 'GET',
+          headers: { 'X-Log-Type': 'PAGE_WEB' } 
+        }).catch(() => {});
+      };
+
+      document.addEventListener('astro:page-load', reportVisit);
+    </script>
   </body>
 </html>

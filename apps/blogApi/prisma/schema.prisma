@@ -89,3 +89,24 @@ model Menu {
 
   @@index([parentId])
 }
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  logType    String   @default("API") // PAGE_WEB, PAGE_ADMIN, API
+  method     String   // GET, POST, etc.
+  path       String   // 请求路径
+  status     Int      // 响应状态码
+  ip         String   // 访问者 IP
+  location   String?  // 地理位置
+  duration   Int      // 耗时 (ms)
+  userAgent  String?  @db.Text
+  body       Json?    // 请求体
+  query      Json?    // 查询参数
+  userId     Int?     // 操作人 ID (可选)
+  createdAt  DateTime @default(now())
+
+  @@index([logType])
+  @@index([path])
+  @@index([createdAt])
+  @@index([userId])
+}

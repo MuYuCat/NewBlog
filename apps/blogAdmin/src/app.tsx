@@ -66,8 +66,13 @@ export const request: RequestConfig = {
     (response: any) => {
       const { data: body } = response;
 
+      // 关键修复：如果是文件流(Blob)，直接返回 response，不进行 JSON 解包校验
+      if (body instanceof Blob) {
+        return response;
+      }
+
       // 业务 code 校验
-      if (body && body.code !== 200) {
+      if (body && body.code !== undefined && body.code !== 200) {
         const errorMsg = body.message || '服务异常';
         message.error(errorMsg);
         return Promise.reject(body);

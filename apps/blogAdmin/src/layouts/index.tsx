@@ -97,6 +97,12 @@ const MainLayout: React.FC = () => {
       root.setAttribute('data-theme', 'light');
     }
 
+    // 管理后台页面上报 (PAGE_ADMIN)
+    fetch('/api/public-menu/visit?from=' + encodeURIComponent(location.pathname), {
+      method: 'GET',
+      headers: { 'X-Log-Type': 'PAGE_ADMIN' },
+    }).catch(() => {});
+
     // 核心逻辑修复：双保险重定向机制
     const token = localStorage.getItem('admin-token');
     // 只有在【既没有登录态】且【本地也没有有效 token】的情况下，且不在登录页，才跳转

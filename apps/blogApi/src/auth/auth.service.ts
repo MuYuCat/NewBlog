@@ -19,7 +19,6 @@ interface IAuthenticator {
   verify(params: { token: string; secret: string }): boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const { authenticator } = otplib as any;
 const auth = authenticator as IAuthenticator;
 

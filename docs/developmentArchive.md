@@ -4,6 +4,56 @@
 
 ---
 
+## 2026-04-08：审计系统极致精修与百万级导出架构闭环
+
+### 🚀 重大变更
+
+- **高性能导出架构 (Stream Export)**:
+  - **后端流式处理**: 在 `blogApi` 中实现了基于 `csv-stringify` 的分页流式导出逻辑。每次仅从数据库读取 1000 条记录并立即推送到 HTTP 响应流，彻底解决了大数据量下的内存溢出隐患。
+  - **拦截器避让机制**: 修复了 NestJS 全局 `TransformInterceptor` 与文件流的冲突；同时在 `blogAdmin` 端优化了 UmiJS 响应拦截器，实现了对 `Blob` 类型数据的智能识别与直接放行。
+- **全端流量埋点 2.0**:
+  - **Admin 端闭环**: 实现了管理后台的页面级行为追踪（`PAGE_ADMIN`），至此全站（Web + Admin）实现了全口径 PV/UV 监控。
+  - **逻辑去重**: 优化了后端统计算法，严格通过 `logType` 区分“业务行为”与“页面流量”，确保了报表数据的纯净性。
+- **Elite UI 旗舰级重塑**:
+  - **视觉对齐**: 统一了侧边栏与内容区的字体血统（`Cormorant Garamond` + `Montserrat`），增加了 `letter-spacing` 微调，提升了整体设计的奢华感。
+  - **交互体验**: 重构了搜索栏为单行 Bento 模式，实现了筛选条件的互斥联动（PV 模式自动隐藏状态过滤）及 100vh 全屏高度适配。
+
+### 📦 交付物
+
+- `apps/blogApi/src/analytics/`: 具备多维过滤与流式导出能力的分析模块。
+- `apps/blogAdmin/src/app.tsx`: 具备文件流识别能力的增强版通用请求拦截器。
+- `apps/blogAdmin/src/pages/analytics/`: 旗舰版全栈审计监控中心。
+
+---
+
+## 2026-04-08：全栈审计系统与全量流量看板实现
+
+### 🚀 重大变更
+
+- **全栈审计中心 (Universal Audit Hub)**:
+  - **核心能力**: 在 `blogApi` 中实现了基于 AOP 的全局 `LoggingInterceptor`，能够自动捕获所有接口的请求方法、路径、状态码、耗时及 Payload。
+  - **地理溯源**: 集成了 `geoip-lite` 库，实现了访问者 IP 到详细地理位置（国家、省份、城市）的实时解析映射。
+  - **多端埋点架构**:
+    - **Web 侧**: 利用 Astro `astro:page-load` 钩子实现“影子请求”上报，标记为 `PAGE_WEB`。
+    - **Admin 侧**: 通过 UmiJS 布局监听实现页面级行为追踪，标记为 `PAGE_ADMIN`。
+  - **数据脱敏与去重**: 优化了 PV 统计逻辑，通过 `logType` 严格区分页面访问与接口调用，从根本上解决了统计重复问题。
+- **Elite UI 交互升级 (Analytics V2)**:
+  - **零滚动仪表盘**: 采用了单行式 Bento 搜索栏，实现了多维条件（类型、状态、日期、关键词）的互斥联动与防抖查询。
+  - **高精密排版**: 优化了列表的行列占比，实现了多级单行省略逻辑及垂直居中的视觉校准。
+  - **旗舰级分页**: 重塑了底部分页器的视觉尺寸与呼吸感，增强了在大批量日志数据下的操控性。
+- **底层架构加固**:
+  - **代理漏洞修复**: 针对 Astro 开发服务器路由拦截导致的 API 404 问题，升级了 Vite Proxy 的正则前缀匹配规则 (`^/api/.*`)。
+  - **后端质量对齐**: 完成了 `analytics` 模块的强类型重构，消除了所有 `any` 警告与 Lint 报错。
+
+### 📦 交付物
+
+- `apps/blogApi/src/analytics/`: 分析模块核心逻辑与数据聚合 API。
+- `apps/blogApi/src/common/interceptors/logging.interceptor.ts`: 全局日志拦截器。
+- `apps/blogAdmin/src/pages/analytics/`: 旗舰级审计监控界面。
+- `apps/blogWeb/src/layouts/Layout.astro`: 全局埋点上报脚本。
+
+---
+
 ## 2026-04-08：菜单空间站 (Spatial Menu) 全栈闭环与架构精修
 
 ### 🚀 重大变更

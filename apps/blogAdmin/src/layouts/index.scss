@@ -11,6 +11,10 @@
   --menu-item-hover: rgba(138, 43, 226, 0.05);
   --menu-item-selected: rgba(138, 43, 226, 0.1);
 
+  // 字体血统同步
+  --font-elite: 'Cormorant Garamond', serif;
+  --font-main: 'Montserrat', 'Inter', 'PingFang SC', sans-serif;
+
   // 语义化颜色
   --error-color: #ff4d4f;
   --error-hover: #ff7875;
@@ -37,6 +41,14 @@ html.dark {
   --shadow-color: rgba(0, 0, 0, 0.4);
 }
 
+// 强制应用系统字体栈
+body,
+#root,
+.ant-layout {
+  font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased;
+}
+
 // 强制所有涉及主题变化的元素应用统一过渡
 * {
   transition: var(--theme-transition);
@@ -59,7 +71,7 @@ html.dark {
   }
 
   .sidebar-header {
-    padding: 24px 20px;
+    padding: 32px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -68,16 +80,18 @@ html.dark {
     .sidebar-brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       img {
-        height: 32px;
+        height: 36px;
       }
       .luxury-title {
         margin: 0;
-        font-family: 'Cormorant Garamond', serif;
-        font-size: 22px;
+        font-family: var(--font-elite);
+        font-size: 26px;
         font-weight: 700;
+        font-style: italic;
         color: var(--text-main);
+        letter-spacing: -0.02em;
       }
     }
 
@@ -103,16 +117,18 @@ html.dark {
   .color-block-menu {
     background: transparent !important;
     border: none !important;
-    padding: 0 12px !important;
+    padding: 0 16px !important;
     flex: 1;
     overflow-y: auto;
 
     .ant-menu-item {
-      height: 54px !important;
-      line-height: 54px !important;
-      margin: 8px 0 !important;
+      height: 52px !important;
+      line-height: 52px !important;
+      margin: 6px 0 !important;
       border-radius: 16px !important;
       color: var(--text-secondary) !important;
+      font-weight: 500;
+      letter-spacing: 0.03em; // 注入精致感
 
       .ant-menu-item-icon {
         font-size: 18px !important;
@@ -121,6 +137,7 @@ html.dark {
       &.ant-menu-item-selected {
         background: var(--menu-item-selected) !important;
         color: var(--text-main) !important;
+        font-weight: 700;
         .ant-menu-item-icon {
           color: var(--primary-color) !important;
         }
@@ -136,23 +153,23 @@ html.dark {
 
   // 侧边栏底部
   .sidebar-footer {
-    padding: 20px;
+    padding: 24px;
     border-top: 1px solid var(--border-color);
     flex-shrink: 0;
 
     .sidebar-profile {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px;
-      border-radius: 20px;
+      gap: 14px;
+      padding: 14px;
+      border-radius: 24px;
       background: var(--menu-item-hover);
       margin-bottom: 16px;
       border: 1px solid var(--border-color);
       cursor: pointer;
       .profile-avatar {
-        width: 44px;
-        height: 44px;
+        width: 46px;
+        height: 46px;
         border: 2px solid var(--bg-body);
       }
 
@@ -161,27 +178,34 @@ html.dark {
         flex-direction: column;
         .profile-name {
           font-weight: 700;
-          font-size: 14px;
+          font-size: 15px;
+          font-family: var(--font-elite); // 注入精英血统
+          font-style: italic;
           color: var(--text-main);
         }
         .profile-role {
-          font-size: 11px;
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 0.1em;
           text-transform: uppercase;
           color: var(--text-secondary);
+          opacity: 0.6;
         }
       }
     }
 
     .logout-btn {
-      height: 44px;
+      height: 46px;
       border-radius: 16px;
       border-color: var(--error-border);
       color: var(--error-color);
-      font-weight: 600;
+      font-weight: 700;
       width: 100%;
+      letter-spacing: 0.05em;
       &:hover {
         background: var(--error-color) !important;
         color: var(--pure-white) !important;
+        box-shadow: 0 10px 20px rgba(255, 77, 79, 0.2);
       }
     }
   }
@@ -225,6 +249,7 @@ div[class*='ant-pro'] {
     color: var(--text-main) !important;
     font-weight: 700 !important;
     font-size: 15px !important;
+    font-family: var(--font-elite);
   }
 
   .ant-popover-message-description {

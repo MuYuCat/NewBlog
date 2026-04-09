@@ -16,11 +16,11 @@ export default defineConfig({
   server: {
     port: 8080,
   },
-  // 使用 Vite 底层代理配置，解决 Astro 路由拦截导致的 404 问题
   vite: {
     server: {
       proxy: {
-        '/api': {
+        // 使用正则前缀匹配，并确保 changeOrigin 为 true
+        '^/api/.*': {
           target: 'http://127.0.0.1:3000',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),

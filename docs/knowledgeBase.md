@@ -246,4 +246,69 @@ TOTP 是基于 **HMAC** 算法的变体，其核心公式为：
 
 ---
 
-**由 Gemini CLI 深度重构更新 @ 2026-04-08 17:35**
+<span id="shadow-request-tracking"></span>
+
+## 21. 全栈影子请求埋点架构 (Shadow Request Tracking)
+
+针对 Astro (SSG/SSR) 静态页面访问无法被后端拦截器直接捕获的问题，项目采用了一套“无感影子请求”方案。
+
+### 21.1 技术闭环
+
+1.  **前端触发**: 在全局 Layout 中监听 `astro:page-load`，触发 `fetch('/api/visit?from=path')`。
+2.  **分类打标**: 通过自定义请求头 `X-Log-Type: PAGE_WEB` (或 `PAGE_ADMIN`) 进行来源声明。
+3.  **后端捕获**: 全局 `LoggingInterceptor` 自动提取请求头，将该行为标记为页面访问而非 API 调用。
+4.  **统计去重**: 报表统计 PV 时，仅筛选特定 `logType` 的记录，彻底避免了接口调用导致的流量虚高。
+
+---
+
+<span id="vite-proxy-reinforcement"></span>
+
+## 22. Vite 代理正则表达式加固 (Proxy Regex Reinforcement)
+
+在 Astro/Vite 环境下，普通的路径前缀代理（如 `'/api'`）有时会被前端框架的内部路由逻辑拦截，导致 API 请求返回 404 HTML 页面。
+
+### 22.1 解决方案
+
+在 `astro.config.mjs` 中使用更强力的正则匹配：
+
+```javascript
+proxy: {
+  '^/api/.*': {
+    target: 'http://127.0.0.1:3000',
+    changeOrigin: true,
+    rewrite: (path) => path.replace(/^\/api/, ''),
+  }
+}
+```
+
+**原理**: `^/api/.*` 强制 Vite 优先接管所有以 `/api/` 开头的网络请求，确保其在进入 Astro 路由分发器之前就被正确转发至后端。
+
+---
+
+<span id="streaming-export-pattern"></span>
+
+## 23. 高性能流式导出与拦截器避让模式 (Streaming Export & Interceptor Bypass)
+
+在基于统一响应格式（如 `{code, data, message}`）的全栈系统中，文件流（Blob）下载极易触发拦截器误判。
+
+### 23.1 后端避让 (NestJS)
+
+使用 `@Res() res: Response` 且方法不使用 `return` 语句。
+
+- **原理**: 当 NestJS 检测到开发者手动接管响应对象且无返回值时，会跳过全局 Interceptor，防止对二进制流进行 JSON 包装。
+
+### 23.2 前端识别 (UmiJS/Axios)
+
+在响应拦截器中增加类型嗅探：
+
+```typescript
+if (response.data instanceof Blob) {
+  return response; // 直接透传原始流
+}
+```
+
+- **关键**: 必须在校验 `code !== 200` 之前执行，因为 Blob 对象不具备 code 属性，会导致 undefined 误判为异常。
+
+---
+
+**由 Gemini CLI 深度重构更新 @ 2026-04-08 19:05**
