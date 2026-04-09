@@ -1,338 +1,413 @@
-import React, { useState, useRef, useMemo } from 'react';
-import { Typography, Button, Space, Input, Modal, Form, Empty } from 'antd';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-  PlusOutlined,
+  Button,
+  Input,
+  Tag,
+  Popconfirm,
+  Modal,
+  Form,
+  Select,
+  message,
+  Tooltip,
+  Typography,
+  Space,
+  Empty,
+} from 'antd';
+import {
   SearchOutlined,
+  PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  LinkOutlined,
-  SettingOutlined,
+  GlobalOutlined,
+  FilterOutlined,
+  ArrowRightOutlined,
   ThunderboltFilled,
+  CloseOutlined,
 } from '@ant-design/icons';
 import { gsap } from 'gsap';
-import './vault.scss';
+import './index.scss';
 
-const { Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
+
+// --- 系统预设色谱 ---
+const ELITE_COLORS = [
+  { name: '品红', value: 'magenta', hex: '#eb2f96' },
+  { name: '靛蓝', value: 'blue', hex: '#1677ff' },
+  { name: '青瓷', value: 'cyan', hex: '#13c2c2' },
+  { name: '极客蓝', value: 'geekblue', hex: '#2f54eb' },
+  { name: '紫色', value: 'purple', hex: '#722ed1' },
+  { name: '赤橙', value: 'orange', hex: '#fa8c16' },
+  { name: '极光绿', value: 'green', hex: '#52c41a' },
+];
 
 // --- 类型定义 ---
-interface Resource {
-  id: number;
-  title: string;
-  url: string;
-  desc: string;
-  tags: string[];
-  status: 'online' | 'paused';
-}
-
-interface Category {
+interface VaultTag {
   id: string;
   name: string;
-  icon: string;
-  color?: string;
-  matchTags?: string[];
+  color: string;
 }
 
-// --- 初始 Mock 数据 ---
-const INITIAL_CATEGORIES: Category[] = [
-  { id: 'all', name: '全部资源', icon: 'AppstoreFilled' },
-  {
-    id: 'inspiration',
-    name: '灵感策展',
-    icon: 'StarFilled',
-    color: '#f5222d',
-    matchTags: ['UI', '设计', '动效'],
-  },
-  {
-    id: 'tech',
-    name: '技术智库',
-    icon: 'ThunderboltFilled',
-    color: '#1890ff',
-    matchTags: ['后端', '框架', 'Web', '数据库', 'React', 'TS'],
-  },
-];
-
-const INITIAL_RESOURCES: Resource[] = [
-  {
-    id: 1,
-    title: 'Astro Framework',
-    url: 'https://astro.build',
-    desc: '面向内容驱动型网站的 Web 框架。默认零 JS 加载的孤岛架构。',
-    tags: ['Web', 'Static', 'JS'],
-    status: 'online',
-  },
-  {
-    id: 2,
-    title: 'GSAP Animation',
-    url: 'https://gsap.com',
-    desc: '为现代 Web 设计的专业级 JavaScript 动画引擎。',
-    tags: ['动效', 'JS'],
-    status: 'online',
-  },
-  {
-    id: 3,
-    title: 'Prisma ORM',
-    url: 'https://prisma.io',
-    desc: '面向 Node.js 和 TypeScript 的下一代 ORM 框架。',
-    tags: ['后端', '数据库'],
-    status: 'online',
-  },
-  {
-    id: 4,
-    title: 'UmiJS',
-    url: 'https://umijs.org',
-    desc: '可扩展的企业级前端应用框架，内置插件体系。',
-    tags: ['React', '框架'],
-    status: 'online',
-  },
-];
+interface VaultResource {
+  id: string;
+  title: string;
+  url: string;
+  tagIds: string[];
+  description?: string;
+}
 
 const VaultPage: React.FC = () => {
-  const [resources] = useState<Resource[]>(INITIAL_RESOURCES);
-  const [categories] = useState<Category[]>(INITIAL_CATEGORIES);
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchText, setSearchText] = useState('');
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
-  // 弹窗状态
+  const [resources, setResources] = useState<VaultResource[]>([
+    {
+      id: '1',
+      title: 'GSAP 官方文档与动画生态指南',
+      url: 'https://gsap.com/',
+      tagIds: ['t1', 't3'],
+      description:
+        '业界最强大的 Web 动画引擎。支持时间轴控制、SVG 变形、滚动联动等顶级动效特性，是构建高奢交互的首选方案。',
+    },
+    {
+      id: '2',
+      title: 'Astro Islands 架构深度解析',
+      url: 'https://astro.build/',
+      tagIds: ['t2'],
+      description:
+        '探索革命性的孤岛架构（Islands Architecture）。通过按需加载交互组件，实现极致的性能优化与极速的 FCP 体验。',
+    },
+    {
+      id: '3',
+      title: 'Ant Design 5.0 设计规范',
+      url: 'https://ant.design/',
+      tagIds: ['t2', 't3'],
+      description:
+        '基于 Design Token 的全新响应式设计系统。通过动态主题引擎实现高效的 UI 风格定制与全栈色彩管理。',
+    },
+  ]);
+
+  const [tags, setTags] = useState<VaultTag[]>([
+    { id: 't1', name: '动效灵感', color: 'magenta' },
+    { id: 't2', name: '前端基建', color: 'blue' },
+    { id: 't3', name: '官方文档', color: 'cyan' },
+  ]);
+
   const [isResModalOpen, setIsResModalOpen] = useState(false);
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [editingResId, setEditingResId] = useState<string | null>(null);
+  const [editingTagId, setEditingTagId] = useState<string | null>(null);
 
-  const detailPanelRef = useRef<HTMLDivElement>(null);
+  const [resForm] = Form.useForm();
+  const [tagForm] = Form.useForm();
 
-  // --- 过滤逻辑 ---
-  const filteredResources = useMemo(() => {
-    return resources.filter((res) => {
-      const matchesSearch = res.title.toLowerCase().includes(searchQuery.toLowerCase());
-      const cat = categories.find((c) => c.id === activeCategory);
-      const matchesCategory =
-        activeCategory === 'all' ||
-        (cat?.matchTags && res.tags.some((t) => cat.matchTags?.includes(t)));
-      return matchesSearch && matchesCategory;
-    });
-  }, [resources, activeCategory, searchQuery, categories]);
-
-  // --- 交互动效：详情面板切入 ---
-  const toggleSelectResource = (res: Resource) => {
-    const isDeselecting = selectedResource?.id === res.id;
-    const tl = gsap.timeline();
-
-    tl.to('.detail-panel-glass', {
-      x: isDeselecting ? 40 : -20,
+  useEffect(() => {
+    gsap.from('.vault-header-glass', { opacity: 0, y: -20, duration: 1, ease: 'expo.out' });
+    gsap.from('.vault-resource-card', {
       opacity: 0,
-      duration: 0.3,
-      ease: 'power2.in',
-      onComplete: () => {
-        setSelectedResource(isDeselecting ? null : res);
-        if (!isDeselecting) {
-          gsap.fromTo(
-            '.detail-panel-glass',
-            { x: 40, opacity: 0 },
-            { x: 0, opacity: 1, duration: 0.6, ease: 'expo.out' },
-          );
-        }
-      },
+      y: 20,
+      stagger: 0.08,
+      duration: 0.8,
+      ease: 'power2.out',
     });
+  }, []);
+
+  const openResModal = (res?: VaultResource) => {
+    setEditingResId(res ? res.id : null);
+    if (res) resForm.setFieldsValue(res);
+    else resForm.resetFields();
+    setIsResModalOpen(true);
   };
 
-  // --- 获取 Favicon ---
+  const handleSaveResource = (values: any) => {
+    if (editingResId) {
+      setResources((prev) => prev.map((r) => (r.id === editingResId ? { ...r, ...values } : r)));
+      message.success('协议同步成功');
+    } else {
+      setResources([{ id: Date.now().toString(), ...values }, ...resources]);
+      message.success('新资源已入库');
+    }
+    setIsResModalOpen(false);
+  };
+
+  const handleDeleteResource = (id: string) => {
+    setResources((prev) => prev.filter((r) => r.id !== id));
+    message.success('资源已移除');
+  };
+
+  const openTagModal = (tag?: VaultTag) => {
+    setEditingTagId(tag ? tag.id : null);
+    if (tag) {
+      tagForm.setFieldsValue(tag);
+    } else {
+      tagForm.resetFields();
+    }
+    setIsTagModalOpen(true);
+  };
+
+  const handleSaveTag = (values: any) => {
+    if (editingTagId) {
+      // 编辑时保留原有颜色
+      const existingColor = tags.find((t) => t.id === editingTagId)?.color || 'blue';
+      const finalTag = { ...values, color: existingColor };
+      setTags((prev) => prev.map((t) => (t.id === editingTagId ? { ...t, ...finalTag } : t)));
+      message.success('维度已重构');
+    } else {
+      // 新建时随机分配预设颜色
+      const randomColor = ELITE_COLORS[Math.floor(Math.random() * ELITE_COLORS.length)].value;
+      const finalTag = { ...values, color: randomColor };
+      setTags([...tags, { id: Date.now().toString(), ...finalTag }]);
+      message.success('新维度已部署');
+    }
+    setIsTagModalOpen(false);
+  };
+
+  const filteredResources = useMemo(() => {
+    return resources.filter((r) => {
+      const matchSearch =
+        r.title.toLowerCase().includes(searchText.toLowerCase()) ||
+        r.url.toLowerCase().includes(searchText.toLowerCase()) ||
+        (r.description || '').toLowerCase().includes(searchText.toLowerCase());
+      const matchTags =
+        selectedTagIds.length === 0 || selectedTagIds.every((id) => r.tagIds.includes(id));
+      return matchSearch && matchTags;
+    });
+  }, [resources, searchText, selectedTagIds]);
+
   const getFavicon = (url: string) => {
     try {
       const domain = new URL(url).hostname;
-      return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
     } catch {
-      return '';
+      return null;
     }
   };
 
   return (
-    <div className="vault-management-container">
-      {/* 1. 沉浸式标题栏 */}
-      <header className="vault-header-glass">
+    <div className="vault-page-container animate-fade-in">
+      {/* 1. 顶部标题 */}
+      <div className="vault-header-glass">
         <div className="title-area">
-          <h2>Resource Vault</h2>
-          <span>个人灵感智库与资源策展中心</span>
+          <Title level={2}>剪藏空间站</Title>
+          <span>NETWORK HOLOGRAPHIC ARCHIVE</span>
         </div>
-        <div className="action-area">
-          <div className="vault-search">
-            <Input
-              prefix={<SearchOutlined style={{ opacity: 0.3 }} />}
-              placeholder="搜索数据轨道..."
-              onChange={(e) => setSearchQuery(e.target.value)}
-              allowClear
-            />
-          </div>
+        <div className="global-actions">
           <Button
             type="primary"
-            icon={<PlusOutlined />}
             size="large"
-            style={{ borderRadius: '16px', height: '50px', fontWeight: 700 }}
-            onClick={() => setIsResModalOpen(true)}
+            icon={<ThunderboltFilled />}
+            onClick={() => openResModal()}
+            className="elite-launch-btn"
           >
-            捕获资源
+            收录资源镜像
           </Button>
-        </div>
-      </header>
-
-      <div className="vault-main-content">
-        {/* 2. 左侧：资源轨道网格 */}
-        <div className="resource-track-grid">
-          {filteredResources.map((res) => (
-            <div
-              key={res.id}
-              className={`resource-card-bento ${selectedResource?.id === res.id ? 'active' : ''}`}
-              onClick={() => toggleSelectResource(res)}
-            >
-              <div className="card-header">
-                <div className="favicon-box">
-                  <img
-                    src={getFavicon(res.url)}
-                    alt=""
-                    onError={(e) =>
-                      (e.currentTarget.src =
-                        'https://api.dicebear.com/7.x/initials/svg?seed=' + res.title)
-                    }
-                  />
-                </div>
-                <div className={`status-indicator ${res.status}`}>{res.status.toUpperCase()}</div>
-              </div>
-              <div className="card-body">
-                <span className="card-title">{res.title}</span>
-                <span className="card-tags">{res.tags.join(' · ')}</span>
-              </div>
-            </div>
-          ))}
-          <div className="add-resource-placeholder" onClick={() => setIsResModalOpen(true)}>
-            <PlusOutlined style={{ fontSize: '1.5rem' }} />
-            <span>捕获新灵感</span>
-          </div>
-        </div>
-
-        {/* 3. 右侧：磨砂玻璃详情面板 */}
-        <div
-          className="detail-panel-glass"
-          ref={detailPanelRef}
-          style={{
-            opacity: selectedResource ? 1 : 0,
-            transform: selectedResource ? 'none' : 'translateX(40px)',
-          }}
-        >
-          {selectedResource ? (
-            <>
-              <div className="panel-header">
-                <div className="panel-title">{selectedResource.title}</div>
-                <div className="panel-actions">
-                  <Space size={12}>
-                    <Button
-                      shape="circle"
-                      icon={<EditOutlined />}
-                      onClick={() => setIsResModalOpen(true)}
-                    />
-                    <Button shape="circle" icon={<DeleteOutlined />} danger />
-                  </Space>
-                </div>
-              </div>
-              <div className="panel-body">
-                <div className="detail-section">
-                  <span className="section-label">Core Protocol / 核心协议</span>
-                  <div className="info-list">
-                    <div className="info-item">
-                      <span className="label">接入地址</span>
-                      <span className="value">{selectedResource.url}</span>
-                    </div>
-                    <div className="info-item">
-                      <span className="label">同步状态</span>
-                      <span className="value">
-                        {selectedResource.status === 'online'
-                          ? '已挂载 (ONLINE)'
-                          : '待校准 (PAUSED)'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="detail-section">
-                  <span className="section-label">Metadata / 元数据摘要</span>
-                  <Text style={{ opacity: 0.6, lineHeight: 1.8 }}>{selectedResource.desc}</Text>
-                </div>
-
-                <div className="detail-section">
-                  <span className="section-label">Taxonomy / 分类频道</span>
-                  <div className="category-tag-cloud">
-                    {categories.map((cat) => (
-                      <div
-                        key={cat.id}
-                        className={`cat-pill ${activeCategory === cat.id ? 'active' : ''}`}
-                        onClick={() => setActiveCategory(cat.id)}
-                      >
-                        <SettingOutlined /> {cat.name}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ marginTop: 'auto', padding: '2rem 0' }}>
-                  <Button
-                    type="primary"
-                    block
-                    size="large"
-                    shape="round"
-                    icon={<LinkOutlined />}
-                    onClick={() => window.open(selectedResource.url)}
-                  >
-                    跳跃至源轨道
-                  </Button>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div
-              style={{
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: 0.2,
-              }}
-            >
-              <Empty description="选择一个数据信号以解码详情" />
-            </div>
-          )}
         </div>
       </div>
 
-      {/* 4. 资源捕获弹窗 (对齐 Menu Modal) */}
+      {/* 2. 主体内容 */}
+      <div className="vault-main-content">
+        <div className="vault-left-rail">
+          <div className="vault-bento-search">
+            <Input
+              prefix={<SearchOutlined />}
+              placeholder="全量索引搜索..."
+              variant="borderless"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="search-input"
+            />
+            <div className="divider" />
+            <Select
+              mode="multiple"
+              placeholder="多维过滤"
+              variant="borderless"
+              className="tag-select"
+              suffixIcon={<FilterOutlined />}
+              maxTagCount="responsive"
+              value={selectedTagIds}
+              onChange={setSelectedTagIds}
+              allowClear
+            />
+          </div>
+
+          <div className="vault-resource-grid">
+            {filteredResources.length > 0 ? (
+              filteredResources.map((item) => (
+                <div className="vault-resource-card" key={item.id}>
+                  <div className="card-header">
+                    <div className="brand-box">
+                      <img
+                        src={getFavicon(item.url) || ''}
+                        alt="icon"
+                        onError={(e) => (e.currentTarget.style.display = 'none')}
+                      />
+                      <GlobalOutlined className="fallback-icon" />
+                    </div>
+                    <div className="info-area">
+                      <Title level={5} ellipsis={{ tooltip: item.title }} className="res-title">
+                        {item.title}
+                      </Title>
+                      <div className="tag-orbit">
+                        {item.tagIds.map((tid) => {
+                          const t = tags.find((tag) => tag.id === tid);
+                          return t ? (
+                            <Tag key={t.id} color={t.color} bordered={false}>
+                              {t.name}
+                            </Tag>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="card-body">
+                    <Paragraph ellipsis={{ rows: 2 }} className="res-desc">
+                      {item.description || '该资源链路处于待机状态，暂无深度协议解析内容。'}
+                    </Paragraph>
+                  </div>
+
+                  <div className="card-actions-dock">
+                    <Tooltip title="访问原站">
+                      <Button
+                        type="text"
+                        shape="circle"
+                        icon={<ArrowRightOutlined />}
+                        href={item.url}
+                        target="_blank"
+                      />
+                    </Tooltip>
+                    <Button
+                      type="text"
+                      shape="circle"
+                      icon={<EditOutlined />}
+                      onClick={() => openResModal(item)}
+                    />
+                    <Popconfirm
+                      title="销毁此镜像？"
+                      onConfirm={() => handleDeleteResource(item.id)}
+                      placement="top"
+                    >
+                      <Button type="text" shape="circle" danger icon={<DeleteOutlined />} />
+                    </Popconfirm>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="轨道空旷，无匹配数据" />
+            )}
+          </div>
+        </div>
+
+        <div className="vault-right-panel">
+          <div className="panel-header">
+            <span className="panel-title">维度空间</span>
+          </div>
+          <div className="panel-scroll-content">
+            {tags.map((tag) => (
+              <div className="tag-orbit-card" key={tag.id}>
+                <div className="tag-info">
+                  <div
+                    className="status-dot"
+                    style={{ backgroundColor: `var(--ant-${tag.color}-5)` }}
+                  />
+                  <span className="tag-name">{tag.name}</span>
+                </div>
+                <div className="tag-actions">
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<EditOutlined />}
+                    onClick={() => openTagModal(tag)}
+                  />
+                  <Popconfirm title="确认抹除？" onConfirm={() => message.info('仅演示')}>
+                    <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+                  </Popconfirm>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="dashed"
+              block
+              icon={<PlusOutlined />}
+              onClick={() => openTagModal()}
+              className="add-dim-btn"
+            >
+              部署新维度
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* --- 资源镜像弹窗 --- */}
       <Modal
-        title="捕获新资源协议"
+        title={editingResId ? '校准资源协议' : '收录资源镜像'}
         open={isResModalOpen}
         onCancel={() => setIsResModalOpen(false)}
-        className="elite-glass-modal elite-vault-modal"
-        width={600}
-        footer={[
-          <Button key="cancel" onClick={() => setIsResModalOpen(false)}>
-            取消
-          </Button>,
-          <Button key="submit" type="primary" onClick={() => setIsResModalOpen(false)}>
-            确认同步
-          </Button>,
-        ]}
+        onOk={() => resForm.submit()}
+        destroyOnClose
+        centered
+        width={560}
+        okText={editingResId ? '确认校准' : '确认收录'}
+        cancelText="取消"
       >
-        <Form layout="vertical">
-          <Form.Item label="标识名">
-            <Input className="elite-input" placeholder="输入资源名称" />
+        <Form
+          form={resForm}
+          layout="vertical"
+          onFinish={handleSaveResource}
+          style={{ marginTop: 24 }}
+        >
+          <Form.Item
+            name="title"
+            label="镜像名称"
+            rules={[{ required: true, message: '请输入资源名称' }]}
+          >
+            <Input placeholder="输入资源显示标题，例如：React 官方文档" />
           </Form.Item>
-          <Form.Item label="访问链路">
-            <Input
-              className="elite-input"
-              placeholder="https://..."
-              prefix={<ThunderboltFilled style={{ color: '#faad14' }} />}
-            />
+          <Form.Item
+            name="url"
+            label="资源链路"
+            rules={[{ required: true, message: '请输入资源链接' }]}
+          >
+            <Input placeholder="https://..." />
           </Form.Item>
-          <Form.Item label="功能描述">
-            <Input.TextArea
-              className="elite-input"
-              rows={4}
-              style={{ height: 'auto' }}
-              placeholder="描述该资源的独特价值..."
-            />
+          <Form.Item name="tagIds" label="注入维度">
+            <Select mode="multiple" placeholder="请选择关联的维度标签" allowClear>
+              {tags.map((t) => (
+                <Select.Option key={t.id} value={t.id}>
+                  {t.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="description" label="协议简介" style={{ marginBottom: 0 }}>
+            <Input.TextArea rows={4} placeholder="输入对此资源的描述或用途..." />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* --- 维度空间弹窗 --- */}
+      <Modal
+        title={editingTagId ? '重构维度属性' : '部署全新维度'}
+        open={isTagModalOpen}
+        onCancel={() => setIsTagModalOpen(false)}
+        onOk={() => tagForm.submit()}
+        destroyOnClose
+        centered
+        width={400}
+        okText="确认部署"
+        cancelText="取消"
+      >
+        <Form
+          form={tagForm}
+          layout="vertical"
+          onFinish={handleSaveTag}
+          style={{ marginTop: 24, marginBottom: -8 }}
+        >
+          <Form.Item
+            name="name"
+            label="标识名称"
+            rules={[{ required: true, message: '请输入维度名称' }]}
+          >
+            <Input placeholder="例如：交互灵感" />
           </Form.Item>
         </Form>
       </Modal>

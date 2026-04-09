@@ -122,22 +122,23 @@ body,
     overflow-y: auto;
 
     .ant-menu-item {
-      height: 52px !important;
-      line-height: 52px !important;
-      margin: 6px 0 !important;
-      border-radius: 16px !important;
+      height: 56px !important; // 增加高度
+      line-height: 56px !important;
+      margin: 8px 0 !important; // 增加间距
+      border-radius: 18px !important; // 更圆润
       color: var(--text-secondary) !important;
-      font-weight: 500;
-      letter-spacing: 0.03em; // 注入精致感
+      font-weight: 600; // 增强字重
+      font-size: 15px !important; // 提升字号
+      letter-spacing: 0.05em;
 
       .ant-menu-item-icon {
-        font-size: 18px !important;
+        font-size: 20px !important; // 图标同步放大
       }
 
       &.ant-menu-item-selected {
         background: var(--menu-item-selected) !important;
         color: var(--text-main) !important;
-        font-weight: 700;
+        font-weight: 800;
         .ant-menu-item-icon {
           color: var(--primary-color) !important;
         }
@@ -146,7 +147,7 @@ body,
       &:hover {
         background: var(--menu-item-hover) !important;
         color: var(--text-main) !important;
-        transform: translateX(4px);
+        transform: translateX(6px); // 增强位移反馈
       }
     }
   }

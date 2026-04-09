@@ -11,6 +11,7 @@ import {
   Popconfirm,
   Switch,
   Empty,
+  Skeleton,
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { request } from '@umijs/max';
@@ -35,9 +36,11 @@ const MenuManagement: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState<MenuItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
   const fetchMenus = async () => {
+    setLoading(true);
     try {
       const res = await request('/menu/tree');
       setMenus(res);
@@ -47,6 +50,9 @@ const MenuManagement: React.FC = () => {
       }
     } catch (error) {
       console.error('获取菜单轨道失败:', error);
+      message.error('信号同步异常，请检查基站连接');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -150,26 +156,42 @@ const MenuManagement: React.FC = () => {
 
       <div className="menu-main-content">
         <div className="top-menu-grid">
-          {menus.map((item) => (
-            <div
-              key={item.id}
-              className={`menu-card-bento ${selectedMenu?.id === item.id ? 'active' : ''} ${item.status === 1 ? 'status-active' : 'status-inactive'}`}
-              onClick={() => toggleSelectMenu(item)}
-            >
-              <div className="card-info">
-                <span className="card-name">{item.name}</span>
-                <span className="card-path">{item.path}</span>
+          {loading ? (
+            Array(4)
+              .fill(0)
+              .map((_, i) => (
+                <div key={i} className="menu-card-bento skeleton-card">
+                  <Skeleton active paragraph={{ rows: 1 }} title={false} />
+                </div>
+              ))
+          ) : (
+            <>
+              {menus.map((item) => (
+                <div
+                  key={item.id}
+                  className={`menu-card-bento ${selectedMenu?.id === item.id ? 'active' : ''} ${item.status === 1 ? 'status-active' : 'status-inactive'}`}
+                  onClick={() => toggleSelectMenu(item)}
+                >
+                  <div className="card-info">
+                    <span className="card-name">{item.name}</span>
+                    <span className="card-path">{item.path}</span>
+                  </div>
+                  <div className="weight-tag">W-{item.order}</div>
+                </div>
+              ))}
+              <div className="add-card-placeholder" onClick={() => handleAdd()}>
+                <PlusOutlined /> <span>发射节点</span>
               </div>
-              <div className="weight-tag">W-{item.order}</div>
-            </div>
-          ))}
-          <div className="add-card-placeholder" onClick={() => handleAdd()}>
-            <PlusOutlined /> <span>发射节点</span>
-          </div>
+            </>
+          )}
         </div>
 
         <div className="detail-panel-glass">
-          {selectedMenu ? (
+          {loading ? (
+            <div className="panel-body">
+              <Skeleton active paragraph={{ rows: 6 }} />
+            </div>
+          ) : selectedMenu ? (
             <>
               <div className="panel-header">
                 <span className="panel-title">{selectedMenu.name}</span>

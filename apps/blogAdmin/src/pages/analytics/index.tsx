@@ -9,6 +9,7 @@ import {
   Pagination,
   DatePicker,
   Tooltip,
+  Skeleton,
 } from 'antd';
 import {
   SearchOutlined,
@@ -76,8 +77,8 @@ const AnalyticsPage: React.FC = () => {
         params.endTime = dateRange[1].toISOString();
       }
       const res = await request('/analytics/logs', { params });
-      setLogs(res.items);
-      setTotal(res.total);
+      setLogs(res.items || []);
+      setTotal(res.total || 0);
     } catch (e) {
       message.error('信号同步中断');
     } finally {
@@ -138,17 +139,18 @@ const AnalyticsPage: React.FC = () => {
     }
   };
 
+  // 筛选条件变化时重置页码
   useEffect(() => {
     setPage(1);
+  }, [keyword, searchTypes, statusFilter, dateRange, pageSize]);
+
+  // 当页码或筛选条件变化时获取数据（防抖）
+  useEffect(() => {
     const timer = setTimeout(() => {
       fetchLogs();
     }, 300);
     return () => clearTimeout(timer);
-  }, [keyword, searchTypes, statusFilter, dateRange, pageSize, fetchLogs]);
-
-  useEffect(() => {
-    fetchLogs();
-  }, [page, fetchLogs]);
+  }, [page, pageSize, keyword, searchTypes, statusFilter, dateRange, fetchLogs]);
 
   useEffect(() => {
     gsap.from('.header-top', { opacity: 0, y: -20, duration: 0.8, ease: 'expo.out' });
@@ -265,7 +267,7 @@ const AnalyticsPage: React.FC = () => {
             <Tooltip title="刷新数据">
               <Button
                 icon={<ReloadOutlined />}
-                loading={loading ? true : undefined}
+                loading={loading}
                 onClick={fetchLogs}
                 className="action-btn"
               />
@@ -273,7 +275,7 @@ const AnalyticsPage: React.FC = () => {
             <Tooltip title="导出报表">
               <Button
                 icon={<ExportOutlined />}
-                loading={exporting ? true : undefined}
+                loading={exporting}
                 onClick={handleExport}
                 className="action-btn"
               />
@@ -292,41 +294,59 @@ const AnalyticsPage: React.FC = () => {
           <span style={{ textAlign: 'right' }}>捕获时间</span>
         </div>
         <div className="table-body">
-          {logs.map((log) => {
-            const pathInfo = renderPath(log);
-            const dt = dayjs(log.createdAt);
-            const typeLabel =
-              log.logType === 'PAGE_WEB' ? 'WEB' : log.logType === 'PAGE_ADMIN' ? 'ADMIN' : 'API';
-            const typeClass =
-              log.logType === 'PAGE_WEB' ? 'pv' : log.logType === 'PAGE_ADMIN' ? 'admin' : 'api';
+          {loading
+            ? Array(8)
+                .fill(0)
+                .map((_, index) => (
+                  <div key={index} className="log-row skeleton-row">
+                    <Skeleton active paragraph={{ rows: 1 }} title={false} />
+                  </div>
+                ))
+            : logs.map((log) => {
+                const pathInfo = renderPath(log);
+                const dt = dayjs(log.createdAt);
+                const typeLabel =
+                  log.logType === 'PAGE_WEB'
+                    ? 'WEB'
+                    : log.logType === 'PAGE_ADMIN'
+                      ? 'ADMIN'
+                      : 'API';
+                const typeClass =
+                  log.logType === 'PAGE_WEB'
+                    ? 'pv'
+                    : log.logType === 'PAGE_ADMIN'
+                      ? 'admin'
+                      : 'api';
 
-            return (
-              <div
-                key={log.id}
-                className={`log-row ${typeClass} ${log.status >= 400 ? 'status-error' : 'status-success'} ${selectedLog?.id === log.id ? 'active' : ''}`}
-                onClick={() => openDetail(log)}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <div className="type-tag">{typeLabel}</div>
-                  <div className="method">{log.method}</div>
-                </div>
-                <div className="status">{log.status}</div>
-                <div className="path-group">
-                  <div className="path-main">{pathInfo.main}</div>
-                  <div className="path-sub">{pathInfo.sub}</div>
-                </div>
-                <div className="ip-group">
-                  <div className="ip-addr">{log.ip}</div>
-                  <div className="ip-loc">{log.location || '未知位置'}</div>
-                </div>
-                <div className={`duration ${getDurationClass(log.duration)}`}>{log.duration}ms</div>
-                <div className="time-group">
-                  <span className="t-date">{dt.format('YYYY-MM-DD')}</span>
-                  <span className="t-time">{dt.format('HH:mm:ss')}</span>
-                </div>
-              </div>
-            );
-          })}
+                return (
+                  <div
+                    key={log.id}
+                    className={`log-row ${typeClass} ${log.status >= 400 ? 'status-error' : 'status-success'} ${selectedLog?.id === log.id ? 'active' : ''}`}
+                    onClick={() => openDetail(log)}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div className="type-tag">{typeLabel}</div>
+                      <div className="method">{log.method}</div>
+                    </div>
+                    <div className="status">{log.status}</div>
+                    <div className="path-group">
+                      <div className="path-main">{pathInfo.main}</div>
+                      <div className="path-sub">{pathInfo.sub}</div>
+                    </div>
+                    <div className="ip-group">
+                      <div className="ip-addr">{log.ip}</div>
+                      <div className="ip-loc">{log.location || '未知位置'}</div>
+                    </div>
+                    <div className={`duration ${getDurationClass(log.duration)}`}>
+                      {log.duration}ms
+                    </div>
+                    <div className="time-group">
+                      <span className="t-date">{dt.format('YYYY-MM-DD')}</span>
+                      <span className="t-time">{dt.format('HH:mm:ss')}</span>
+                    </div>
+                  </div>
+                );
+              })}
         </div>
 
         <div className="pagination-footer">
