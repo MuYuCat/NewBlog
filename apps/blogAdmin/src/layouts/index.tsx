@@ -119,9 +119,8 @@ const MainLayout: React.FC = () => {
       label: '文章管理',
       icon: <ReadOutlined />,
       children: [
-        { key: '/article/knowledge', label: '智库博文' },
-        { key: '/article/journal', label: '随笔日志' },
-        { key: '/article/category', label: '分类管理' },
+        { key: '/article', label: '内容空间枢纽' },
+        { key: '/article/category', label: '主题维度管理' },
       ],
     },
     { key: '/vault', label: '资源宝库', icon: <FolderOpenOutlined /> },

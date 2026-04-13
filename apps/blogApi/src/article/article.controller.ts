@@ -21,6 +21,8 @@ export class ArticleController {
 
   @Get()
   findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
     @Query('search') search?: string,
     @Query('type') type?: string,
     @Query('categoryId') categoryId?: string,
@@ -29,6 +31,8 @@ export class ArticleController {
     @Query('endDate') endDate?: string,
   ) {
     return this.articleService.findAll({
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
       search,
       type,
       categoryId: categoryId ? parseInt(categoryId) : undefined,

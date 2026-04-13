@@ -68,22 +68,13 @@ export default defineConfig({
       routes: [
         {
           path: '/article',
-          redirect: '/article/knowledge',
-        },
-        {
-          path: '/article/knowledge',
-          component: './article/knowledge',
-          name: '智库博文',
-        },
-        {
-          path: '/article/journal',
-          component: './article/journal',
-          name: '随笔日志',
+          component: './article',
+          name: '内容空间枢纽',
         },
         {
           path: '/article/category',
           component: './article/category',
-          name: '分类管理',
+          name: '主题维度管理',
         },
       ],
     },
