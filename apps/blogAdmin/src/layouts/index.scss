@@ -4,12 +4,15 @@
   --bg-sider: #ffffff;
   --bg-body: #ffffff;
   --glass-blur: 20px;
-  --primary-color: #8a2be2;
+  --primary-color: #000000;
+  :global(.dark) & {
+    --primary-color: #ffffff;
+  }
   --text-main: #08060d;
   --text-secondary: #6b6375;
   --border-color: #e5e4e7;
-  --menu-item-hover: rgba(138, 43, 226, 0.05);
-  --menu-item-selected: rgba(138, 43, 226, 0.1);
+  --menu-item-hover: rgba(var(--text-color-rgb), 0.03);
+  --menu-item-selected: rgba(var(--text-color-rgb), 0.05);
 
   // 字体血统同步
   --font-elite: 'Cormorant Garamond', serif;
@@ -150,15 +153,32 @@ body,
       background: var(--menu-item-selected) !important;
       color: var(--text-main) !important;
       font-weight: 800;
+      position: relative;
+
+      /* 选中指示条 */
+      &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 25%;
+        bottom: 25%;
+        width: 4px;
+        background: var(--primary-color);
+        border-radius: 0 4px 4px 0;
+        transition: all 0.3s;
+      }
+
       .ant-menu-item-icon {
         color: var(--primary-color) !important;
+        transform: scale(1.1);
       }
     }
 
     // 复合项展开状态 (SubMenu)
     .ant-menu-submenu-selected > .ant-menu-submenu-title {
-      color: var(--primary-color) !important;
+      color: var(--text-main) !important;
       font-weight: 800;
+      background: var(--menu-item-hover) !important;
     }
 
     // 子菜单容器样式

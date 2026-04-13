@@ -54,12 +54,12 @@
 
     &:hover {
       transform: translateY(-5px);
-      border-color: #8a2be2;
-      box-shadow: 0 20px 40px rgba(138, 43, 226, 0.05);
+      border-color: var(--text-main);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
     }
 
     .icon-purple {
-      color: #8a2be2;
+      color: var(--text-main);
       font-size: 1.2rem;
       margin-right: 8px;
     }
@@ -72,8 +72,8 @@
     }
 
     &.highlight {
-      background: linear-gradient(135deg, rgba(138, 43, 226, 0.1) 0%, rgba(71, 150, 255, 0.1) 100%);
-      border: 1px solid rgba(138, 43, 226, 0.2);
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.05) 0%, rgba(255, 255, 255, 0.05) 100%);
+      border: 1px solid var(--card-border);
     }
   }
 
@@ -94,7 +94,7 @@
       font-weight: 600;
       font-style: italic;
       line-height: 1.2;
-      color: #8a2be2;
+      color: var(--text-main);
     }
   }
 

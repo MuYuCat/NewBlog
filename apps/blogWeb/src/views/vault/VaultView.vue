@@ -128,15 +128,15 @@ const getFirstLetter = (url: string) => {
   return domain.charAt(0).toUpperCase();
 };
 
-// 根据字符串生成高奢色调渐变
+// 根据字符串生成高奢黑白灰阶渐变
 const getPlaceholderStyle = (str: string) => {
   const colors = [
-    ['#f5f5f7', '#d2d2d7'], // Apple Silver
-    ['#e0e5ec', '#a3b1c6'], // Soft Blue Grey
-    ['#fdfcfb', '#e2d1c3'], // Warm Sand
-    ['#f5f7fa', '#c3cfe2'], // Cloud
-    ['#fdfbfb', '#ebedee'], // Pure White
-    ['#e6e9f0', '#eef1f5'], // Ice
+    ['#f9fafb', '#f3f4f6'], // Slate 50 -> 100
+    ['#f3f4f6', '#e5e7eb'], // Slate 100 -> 200
+    ['#e5e7eb', '#d1d5db'], // Slate 200 -> 300
+    ['#f8f9fa', '#e9ecef'], // Gray 50 -> 100
+    ['#ffffff', '#f1f1f1'], // Pure White -> Off White
+    ['#e9ecef', '#dee2e6'], // Gray 100 -> 200
   ];
   // 简单的 hash
   const hash = str.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);

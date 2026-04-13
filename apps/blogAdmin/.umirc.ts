@@ -8,7 +8,7 @@ export default defineConfig({
     configProvider: {
       theme: {
         token: {
-          colorPrimary: '#8a2be2',
+          colorPrimary: '#000000',
           borderRadius: 12,
           fontFamily: 'Montserrat, "Noto Serif SC", sans-serif',
         },

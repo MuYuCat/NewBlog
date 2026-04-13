@@ -1,15 +1,5 @@
 import { history, Outlet, useModel, useLocation } from '@umijs/max';
-import {
-  Layout,
-  Menu,
-  Button,
-  Avatar,
-  Modal,
-  Popconfirm,
-  ConfigProvider,
-  theme,
-  Typography,
-} from 'antd';
+import { Layout, Menu, Button, Avatar, Popconfirm, ConfigProvider, theme } from 'antd';
 import {
   UserOutlined,
   LogoutOutlined,
@@ -46,8 +36,8 @@ import pitao17 from '@/assets/PITAO-xiongmao.png';
 import pitao18 from '@/assets/PITAO-yezhu.png';
 import pitao19 from '@/assets/PITAO-zhu-01.png';
 
-import darkLogo from '@/assets/dark.png';
-import lightLogo from '@/assets/light.png';
+// 统一品牌 Logo
+const logo = '/MuYuCat.png';
 
 import './index.scss';
 
@@ -148,7 +138,7 @@ const MainLayout: React.FC = () => {
     algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
     cssVar: true,
     token: {
-      colorPrimary: isDark ? '#ffffff' : '#8a2be2',
+      colorPrimary: isDark ? '#ffffff' : '#000000',
       borderRadius: 16,
       colorTextBase: isDark ? '#f3f4f6' : '#08060d',
       colorBgBase: isDark ? '#0a0a0c' : '#ffffff',
@@ -172,7 +162,7 @@ const MainLayout: React.FC = () => {
         <Sider width={280} theme={isDark ? 'dark' : 'light'} className="luxury-sider">
           <div className="sidebar-header">
             <div className="sidebar-brand">
-              <img src={isDark ? darkLogo : lightLogo} alt="logo" />
+              <img src={logo} alt="logo" />
               <h1 className="luxury-title">MuYuCat</h1>
             </div>
             <Button

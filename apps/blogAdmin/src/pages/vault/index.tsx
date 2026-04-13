@@ -31,15 +31,13 @@ import './index.scss';
 
 const { Title, Paragraph } = Typography;
 
-// --- 系统预设色谱 ---
+// --- 系统预设色谱 (极致黑白灰) ---
 const ELITE_COLORS = [
-  { name: '品红', value: 'magenta', hex: '#eb2f96' },
-  { name: '靛蓝', value: 'blue', hex: '#1677ff' },
-  { name: '青瓷', value: 'cyan', hex: '#13c2c2' },
-  { name: '极客蓝', value: 'geekblue', hex: '#2f54eb' },
-  { name: '紫色', value: 'purple', hex: '#722ed1' },
-  { name: '赤橙', value: 'orange', hex: '#fa8c16' },
-  { name: '极光绿', value: 'green', hex: '#52c41a' },
+  { name: '曜石黑', value: 'black', hex: '#000000' },
+  { name: '深空灰', value: 'gray', hex: '#4b5563' },
+  { name: '冷灰', value: 'slate', hex: '#9ca3af' },
+  { name: '银石', value: 'silver', hex: '#d1d5db' },
+  { name: '珍珠白', value: 'white', hex: '#f3f4f6' },
 ];
 
 // --- 类型定义 ---

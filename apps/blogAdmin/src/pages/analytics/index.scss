@@ -309,7 +309,10 @@
         &.type-api {
           .type-tag {
             background: rgba(138, 43, 226, 0.1);
-            color: #8a2be2;
+            color: #000000;
+            :global(.dark) & {
+              color: #ffffff;
+            }
             border: 1px solid rgba(138, 43, 226, 0.2);
           }
           &:hover {

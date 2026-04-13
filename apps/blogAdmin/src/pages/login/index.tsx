@@ -96,7 +96,7 @@ const LoginPage: React.FC = () => {
   const [step, setStep] = useState<'login' | '2fa'>('login');
   const [tempUserId, setTempUserId] = useState<number | null>(null);
   const navigate = useNavigate();
-  const { initialState, setInitialState } = useModel('@@initialState');
+  const { setInitialState } = useModel('@@initialState');
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('admin-theme');
@@ -162,7 +162,9 @@ const LoginPage: React.FC = () => {
       } else {
         await handleLoginSuccess(res, loadingKey);
       }
-    } catch (e) {}
+    } catch {
+      // 错误已由全局拦截器处理
+    }
   };
 
   const handle2FASubmit = async (values: { token: string }) => {
@@ -178,14 +180,16 @@ const LoginPage: React.FC = () => {
         data: { userId: tempUserId, token: values.token },
       });
       await handleLoginSuccess(res, loadingKey);
-    } catch (e) {}
+    } catch {
+      // 错误已由全局拦截器处理
+    }
   };
 
   return (
     <ConfigProvider
       theme={{
         algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
-        token: { colorPrimary: '#8a2be2', borderRadius: 16 },
+        token: { colorPrimary: isDark ? '#ffffff' : '#000000', borderRadius: 16 },
       }}
     >
       {contextHolder}
@@ -194,7 +198,7 @@ const LoginPage: React.FC = () => {
         style={
           {
             '--text-color-rgb': isDark ? '255, 255, 255' : '0, 0, 0',
-            '--accent-color': '#8a2be2',
+            '--accent-color': isDark ? '#ffffff' : '#000000',
           } as any
         }
       >

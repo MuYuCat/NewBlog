@@ -172,11 +172,13 @@ const MenuManagement: React.FC = () => {
                   className={`menu-card-bento ${selectedMenu?.id === item.id ? 'active' : ''} ${item.status === 1 ? 'status-active' : 'status-inactive'}`}
                   onClick={() => toggleSelectMenu(item)}
                 >
-                  <div className="card-info">
+                  <div className="card-header-row">
                     <span className="card-name">{item.name}</span>
+                    <div className="weight-tag">W-{item.order}</div>
+                  </div>
+                  <div className="card-info">
                     <span className="card-path">{item.path}</span>
                   </div>
-                  <div className="weight-tag">W-{item.order}</div>
                 </div>
               ))}
               <div className="add-card-placeholder" onClick={() => handleAdd()}>

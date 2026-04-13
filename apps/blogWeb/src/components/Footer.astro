@@ -84,34 +84,6 @@ const copyrightYear = currentYear > 2026 ? `2026 - ${currentYear}` : '2026';
       flex-direction: column;
       gap: 0.8rem;
 
-      .footer-logo-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        text-decoration: none;
-        opacity: 0.9;
-
-        .footer-logo-img {
-          width: 24px;
-          height: 24px;
-          object-fit: contain;
-        }
-
-        .footer-logo-text {
-          font-family: var(--heading);
-          font-size: 1.2rem;
-          font-weight: 500;
-          font-style: italic;
-          color: var(--text-h);
-        }
-
-        .dark-only { display: none; }
-        :global(.dark) & {
-          .light-only { display: none; }
-          .dark-only { display: block; }
-        }
-      }
-
       .copyright {
         font-family: var(--sans);
         font-size: 0.75rem;
@@ -143,7 +115,9 @@ const copyrightYear = currentYear > 2026 ? `2026 - ${currentYear}` : '2026';
           display: flex;
           align-items: center;
           gap: 4px;
-          color: var(--accent);
+          color: var(--text-h); // 改为主题色，去除紫色
+          opacity: 0.8;
+          &:hover { opacity: 1; }
         }
 
         .amp {
