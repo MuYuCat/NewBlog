@@ -1,108 +1,126 @@
 .universal-editor-wrapper {
-  height: 100%;
+  height: 100% !important;
   width: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--bg-sider);
-  border-radius: 20px;
   overflow: hidden;
-  border: 1px solid var(--border-color);
-  transition: all 0.3s;
-
-  &:focus-within {
-    border-color: var(--text-main);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  .bytemd {
+    height: calc(100vh - 246px) !important;
   }
-
-  /* --- ByteMD 深度定制 --- */
+  /* --- ByteMD 深度架构修复 --- */
   :global {
     .bytemd {
       height: 100% !important;
+      display: flex;
+      flex-direction: column;
       border: none !important;
       background: transparent !important;
-      font-family: var(--font-family, sans-serif);
 
       &-toolbar {
-        background: rgba(var(--text-color-rgb), 0.02) !important;
+        flex-shrink: 0;
+        height: 48px !important;
+        background: #fff !important;
+        :global(.dark) & {
+          background: #121214 !important;
+        }
         border-bottom: 1px solid var(--border-color) !important;
         padding: 0 16px !important;
-        height: 56px !important;
-
-        &-icon {
-          color: var(--text-secondary) !important;
-          transition: all 0.2s;
-          &:hover {
-            color: var(--text-main) !important;
-            background: rgba(var(--text-color-rgb), 0.05) !important;
-          }
-        }
       }
 
       &-body {
-        background: transparent !important;
+        flex: 1;
+        height: calc(100% - 48px) !important;
+        display: flex;
+        overflow: hidden; // 保持主体不滚动，内部子级滚动
       }
 
+      // 关键修复：确保分栏模式下左右占满且可滚动
+      &-split {
+        display: flex;
+        width: 100%;
+        height: 100%;
+
+        .bytemd-editor,
+        .bytemd-preview {
+          height: 100% !important;
+          flex: 1;
+          overflow: hidden; // 由内部具体组件接管滚动
+        }
+      }
+
+      // 编辑区滚动修复
       &-editor {
-        font-size: 16px !important;
         .CodeMirror {
-          background: transparent !important;
-          color: var(--text-main) !important;
-          padding: 2rem !important;
-          &-cursor {
-            border-left: 2px solid var(--text-main) !important;
+          height: 100% !important;
+          font-family: 'Inter', 'JetBrains Mono', monospace;
+          font-size: 1.15rem;
+          line-height: 1.8;
+          padding: 0 !important; // 移除多余内边距
+
+          .CodeMirror-scroll {
+            padding: 48px 64px !important; // 在滚动容器内设置 Padding，确保能滚到底部
+            min-height: 100%;
           }
         }
       }
 
+      // 预览区格式与换行修复
       &-preview {
-        padding: 2rem !important;
-        background: rgba(var(--text-color-rgb), 0.01) !important;
+        height: 100% !important;
+        overflow-y: auto !important; // 显式开启预览滚动
+        background: #fcfcfc;
+        :global(.dark) & {
+          background: #0d0d0f !important;
+        }
         border-left: 1px solid var(--border-color) !important;
+        padding: 48px 64px !important;
 
-        /* 预览区文章样式 */
         .markdown-body {
-          background: transparent !important;
-          color: var(--text-main) !important;
-          font-family: inherit !important;
+          max-width: 800px;
+          margin: 0 auto;
+          color: #1a1a1a !important;
+          :global(.dark) & {
+            color: #e5e7eb !important;
+          }
+          font-size: 1.1rem;
+          line-height: 1.75;
+          word-break: break-word !important; // 强制长单词换行
+          white-space: normal !important; // 确保普通文本正常换行
+
+          // 修复列表与间距
+          p,
+          ul,
+          ol,
+          blockquote {
+            margin-bottom: 1.2rem !important;
+          }
 
           h1,
           h2,
-          h3 {
-            border-bottom: 1px solid var(--border-color) !important;
-            font-family: 'Cormorant Garamond', serif;
-            font-style: italic;
-          }
-
-          code {
-            background: rgba(var(--text-color-rgb), 0.05) !important;
-            border-radius: 6px !important;
-          }
-
-          pre {
-            background: #1a1a1c !important;
-            border-radius: 12px !important;
-            padding: 1.5rem !important;
+          h3,
+          h4,
+          h5,
+          h6 {
+            margin-top: 2rem !important;
+            margin-bottom: 1rem !important;
+            font-weight: 700 !important;
+            color: #000;
+            :global(.dark) & {
+              color: #fff;
+            }
           }
         }
       }
 
       &-status {
+        flex-shrink: 0;
+        height: 32px !important;
+        background: #fff !important;
+        :global(.dark) & {
+          background: #121214 !important;
+        }
         border-top: 1px solid var(--border-color) !important;
-        background: rgba(var(--text-color-rgb), 0.02) !important;
-        color: var(--text-secondary) !important;
-        font-size: 12px !important;
-      }
-    }
-  }
-}
-
-/* 兼容暗色模式微调 */
-:global(.dark) {
-  .universal-editor-wrapper {
-    :global(.bytemd-preview .markdown-body) {
-      pre {
-        background: #000000 !important;
-        border: 1px solid #333;
+        padding: 0 16px !important;
       }
     }
   }

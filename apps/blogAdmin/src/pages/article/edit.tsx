@@ -1,28 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Button,
-  Input,
-  Space,
-  Select,
-  Form,
-  message,
-  Typography,
-  Tooltip,
-  Drawer,
-  Radio,
-} from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Button, Input, Space, Select, Form, message, Row, Col } from 'antd';
 import {
   ArrowLeftOutlined,
-  SendOutlined,
-  SettingOutlined,
   SaveOutlined,
   RocketOutlined,
+  LoadingOutlined,
+  LayoutOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { history, request, useParams } from '@umijs/max';
 import UniversalEditor from '@/components/Editor';
+import gsap from 'gsap';
 import './edit.scss';
 
-const { Title } = Typography;
 const { Option } = Select;
 
 const ArticleEditPage: React.FC = () => {
@@ -32,135 +22,202 @@ const ArticleEditPage: React.FC = () => {
   const [form] = Form.useForm();
   const [content, setContent] = useState('');
   const [categories, setCategories] = useState<any[]>([]);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 初始化获取分类
+  const headerRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    request('/category').then((res) => setCategories(res));
+    request('/category').then((res) => {
+      const categoryList = Array.isArray(res) ? res : res?.data || [];
+      setCategories(categoryList);
+    });
+
     if (isEdit) {
       request(`/article/${id}`).then((res) => {
-        form.setFieldsValue(res);
-        setContent(res.content);
+        const data = res?.data || res;
+        form.setFieldsValue(data);
+        setContent(data.content || '');
       });
     }
+
+    const ctx = gsap.context(() => {
+      gsap.from(headerRef.current, { y: -20, opacity: 0, duration: 0.6, ease: 'power2.out' });
+      gsap.from(mainRef.current, {
+        y: 20,
+        opacity: 0,
+        duration: 0.8,
+        delay: 0.1,
+        ease: 'power3.out',
+      });
+      gsap.from(sidebarRef.current, {
+        x: 20,
+        opacity: 0,
+        duration: 0.8,
+        delay: 0.2,
+        ease: 'power3.out',
+      });
+    });
+    return () => ctx.revert();
   }, [id]);
 
   const handlePublish = async (status: number = 1) => {
     try {
       const values = await form.validateFields();
-      if (!content) return message.warning('无法发射空内容镜像');
+      if (!content) return message.warning('无法发布空内容');
 
       setLoading(true);
-      const data = { ...values, content, status };
+      const slug =
+        values.slug ||
+        values.title
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^\w-]/g, '');
+
+      const data = {
+        ...values,
+        content,
+        status,
+        type: values.type || 'KNOWLEDGE',
+        slug: slug,
+      };
 
       if (isEdit) {
         await request(`/article/${id}`, { method: 'PATCH', data });
-        message.success('内容协议已修订');
+        message.success('内容修订已保存');
       } else {
         await request('/article', { method: 'POST', data });
-        message.success('新内容已成功发射至轨道');
+        message.success('新内容已发布');
       }
-      history.push('/article');
-    } catch (e) {
+      history.push('/article/index');
+    } catch (e: any) {
       console.error(e);
+      message.error(e.data?.message || e.message || '操作失败');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="article-edit-container animate-fade-in">
-      {/* 顶部指挥栏 */}
-      <div className="edit-header">
-        <div className="left-area">
+    <div className="article-edit-container-v2">
+      {/* 顶部操作中心 */}
+      <header className="v2-header" ref={headerRef}>
+        <div className="header-left">
           <Button
             type="text"
             icon={<ArrowLeftOutlined />}
             onClick={() => history.back()}
             className="back-btn"
           />
-          <Form form={form} layout="inline" className="title-form">
-            <Form.Item name="title" rules={[{ required: true, message: '请输入标题' }]}>
-              <Input
-                placeholder="在此输入协议标题..."
-                variant="borderless"
-                className="title-input"
-              />
-            </Form.Item>
-          </Form>
+          <nav className="breadcrumb-nav">
+            {/* <span className="nav-item">智库</span>
+            <span className="nav-sep">/</span> */}
+            <span className="nav-active">{isEdit ? '修订协议' : '草拟新篇'}</span>
+          </nav>
         </div>
 
-        <div className="right-area">
+        <div className="header-right">
           <Space size={12}>
-            <Tooltip title="存为草稿">
-              <Button
-                icon={<SaveOutlined />}
-                onClick={() => handlePublish(0)}
-                className="action-btn"
-              />
-            </Tooltip>
+            <div className="status-badge">
+              <span className="dot" />
+              <span className="text">{isEdit ? '同步就绪' : '本地暂存'}</span>
+            </div>
             <Button
-              icon={<SettingOutlined />}
-              onClick={() => setIsDrawerOpen(true)}
-              className="action-btn"
+              icon={loading ? <LoadingOutlined /> : <SaveOutlined />}
+              disabled={loading}
+              onClick={() => handlePublish(0)}
+              className="btn-ghost"
             >
-              配置
+              存为草稿
             </Button>
             <Button
               type="primary"
-              icon={<RocketOutlined />}
+              icon={loading ? <LoadingOutlined /> : <RocketOutlined />}
               loading={loading}
               onClick={() => handlePublish(1)}
-              className="launch-btn"
+              className="btn-primary"
             >
-              立即发射
+              {isEdit ? '更新协议' : '发布内容'}
             </Button>
           </Space>
         </div>
-      </div>
+      </header>
 
-      {/* 编辑区域 */}
-      <div className="edit-main">
-        <UniversalEditor value={content} onChange={setContent} />
-      </div>
+      <main className="v2-main-layout">
+        <Form form={form} layout="vertical" autoComplete="off" className="v2-form">
+          <Row gutter={32} className="layout-row">
+            {/* 主创作区 */}
+            <Col span={18} className="content-column" ref={mainRef}>
+              <div className="editor-card">
+                <Form.Item
+                  name="title"
+                  rules={[{ required: true, message: '请输入内容标题' }]}
+                  className="title-field"
+                >
+                  <Input.TextArea
+                    placeholder="在此输入协议识别标题..."
+                    variant="borderless"
+                    autoSize
+                    className="title-textarea"
+                  />
+                </Form.Item>
 
-      {/* 配置抽屉 */}
-      <Drawer
-        title="内容发射配置"
-        placement="right"
-        onClose={() => setIsDrawerOpen(false)}
-        open={isDrawerOpen}
-        width={400}
-        className="edit-drawer"
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item name="type" label="内容形态" initialValue="KNOWLEDGE">
-            <Radio.Group optionType="button" buttonStyle="solid">
-              <Radio value="KNOWLEDGE">智库博文</Radio>
-              <Radio value="JOURNAL">随笔日志</Radio>
-            </Radio.Group>
-          </Form.Item>
+                <div className="editor-wrapper-v2">
+                  <UniversalEditor value={content} onChange={setContent} />
+                </div>
+              </div>
+            </Col>
 
-          <Form.Item name="categoryId" label="所属维度" rules={[{ required: true }]}>
-            <Select placeholder="请选择内容归属维度">
-              {categories.map((c) => (
-                <Option key={c.id} value={c.id}>
-                  {c.label || c.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+            {/* 配置面板 */}
+            <Col span={6} className="sidebar-column" ref={sidebarRef}>
+              <div className="sidebar-card">
+                <div className="section-box">
+                  <div className="section-header">
+                    <LayoutOutlined className="icon" />
+                    <span>元数据配置</span>
+                  </div>
 
-          <Form.Item name="slug" label="标识 (Slug)" rules={[{ required: true }]}>
-            <Input placeholder="如: my-new-article" />
-          </Form.Item>
+                  <Form.Item
+                    name="categoryId"
+                    label="归属维度"
+                    rules={[{ required: true, message: '请指定维度' }]}
+                    className="sidebar-item"
+                  >
+                    <Select placeholder="选择内容维度" className="v2-select">
+                      {categories.map((c) => (
+                        <Option key={c.id} value={c.id}>
+                          {c.label || c.name}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
 
-          <Form.Item name="summary" label="内容摘要">
-            <Input.TextArea rows={4} placeholder="简述该内容镜像的核心逻辑..." />
-          </Form.Item>
+                  <Form.Item name="summary" label="内容摘要" className="sidebar-item">
+                    <Input.TextArea
+                      placeholder="概括该内容协议的核心逻辑..."
+                      className="v2-textarea"
+                      rows={6}
+                    />
+                  </Form.Item>
+
+                  <div className="sidebar-info">
+                    <InfoCircleOutlined className="info-icon" />
+                    <p>摘要将作为预览片段显示，建议字数控制在 150 以内以获得最佳展示效果。</p>
+                  </div>
+                </div>
+
+                <Form.Item name="type" hidden initialValue="KNOWLEDGE">
+                  <Input />
+                </Form.Item>
+                <Form.Item name="slug" hidden>
+                  <Input />
+                </Form.Item>
+              </div>
+            </Col>
+          </Row>
         </Form>
-      </Drawer>
+      </main>
     </div>
   );
 };
