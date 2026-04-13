@@ -1,0 +1,109 @@
+.universal-editor-wrapper {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-sider);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s;
+
+  &:focus-within {
+    border-color: var(--text-main);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  }
+
+  /* --- ByteMD 深度定制 --- */
+  :global {
+    .bytemd {
+      height: 100% !important;
+      border: none !important;
+      background: transparent !important;
+      font-family: var(--font-family, sans-serif);
+
+      &-toolbar {
+        background: rgba(var(--text-color-rgb), 0.02) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        padding: 0 16px !important;
+        height: 56px !important;
+
+        &-icon {
+          color: var(--text-secondary) !important;
+          transition: all 0.2s;
+          &:hover {
+            color: var(--text-main) !important;
+            background: rgba(var(--text-color-rgb), 0.05) !important;
+          }
+        }
+      }
+
+      &-body {
+        background: transparent !important;
+      }
+
+      &-editor {
+        font-size: 16px !important;
+        .CodeMirror {
+          background: transparent !important;
+          color: var(--text-main) !important;
+          padding: 2rem !important;
+          &-cursor {
+            border-left: 2px solid var(--text-main) !important;
+          }
+        }
+      }
+
+      &-preview {
+        padding: 2rem !important;
+        background: rgba(var(--text-color-rgb), 0.01) !important;
+        border-left: 1px solid var(--border-color) !important;
+
+        /* 预览区文章样式 */
+        .markdown-body {
+          background: transparent !important;
+          color: var(--text-main) !important;
+          font-family: inherit !important;
+
+          h1,
+          h2,
+          h3 {
+            border-bottom: 1px solid var(--border-color) !important;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+          }
+
+          code {
+            background: rgba(var(--text-color-rgb), 0.05) !important;
+            border-radius: 6px !important;
+          }
+
+          pre {
+            background: #1a1a1c !important;
+            border-radius: 12px !important;
+            padding: 1.5rem !important;
+          }
+        }
+      }
+
+      &-status {
+        border-top: 1px solid var(--border-color) !important;
+        background: rgba(var(--text-color-rgb), 0.02) !important;
+        color: var(--text-secondary) !important;
+        font-size: 12px !important;
+      }
+    }
+  }
+}
+
+/* 兼容暗色模式微调 */
+:global(.dark) {
+  .universal-editor-wrapper {
+    :global(.bytemd-preview .markdown-body) {
+      pre {
+        background: #000000 !important;
+        border: 1px solid #333;
+      }
+    }
+  }
+}

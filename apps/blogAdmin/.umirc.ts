@@ -67,9 +67,21 @@ export default defineConfig({
       icon: 'read',
       routes: [
         {
-          path: '/article',
+          path: '/article/index',
           component: './article',
           name: '内容空间枢纽',
+        },
+        {
+          path: '/article/edit',
+          component: './article/edit',
+          name: '内容发射中心',
+          hideInMenu: true,
+        },
+        {
+          path: '/article/edit/:id',
+          component: './article/edit',
+          name: '内容协议修订',
+          hideInMenu: true,
         },
         {
           path: '/article/category',
@@ -92,6 +104,7 @@ export default defineConfig({
     },
   ],
   npmClient: 'pnpm',
+  mfsu: false,
   proxy: {
     '/api/': {
       target: 'http://localhost:3000',
@@ -101,5 +114,7 @@ export default defineConfig({
   },
   alias: {
     '@newblog/validation': path.resolve(__dirname, '../../packages/validation/src/index.ts'),
+    react: path.dirname(require.resolve('react/package.json')),
+    'react-dom': path.dirname(require.resolve('react-dom/package.json')),
   },
 });

@@ -12,11 +12,17 @@
   "dependencies": {
     "@ant-design/icons": "^5.3.7",
     "@ant-design/pro-components": "^2.7.2",
+    "@bytemd/plugin-gfm": "^1.22.0",
+    "@bytemd/plugin-highlight": "^1.22.0",
+    "@bytemd/react": "^1.22.0",
     "@newblog/validation": "workspace:*",
     "@umijs/max": "^4.2.0",
     "antd": "^5.18.0",
+    "bytemd": "^1.22.0",
     "dayjs": "^1.11.20",
     "gsap": "^3.14.2",
+    "highlight.js": "^11.11.1",
+    "mammoth": "^1.12.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.23.8"

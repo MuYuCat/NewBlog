@@ -19,11 +19,10 @@ import {
   SearchOutlined,
   EditOutlined,
   DeleteOutlined,
-  SyncOutlined,
   TagOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
-import { request } from '@umijs/max';
+import { request, history } from '@umijs/max';
 import { gsap } from 'gsap';
 import dayjs from 'dayjs';
 import './article.scss';
@@ -151,7 +150,7 @@ const ArticleSpaceHub: React.FC = () => {
               type="primary"
               size="large"
               icon={<PlusOutlined />}
-              onClick={() => message.info('编辑器正在部署...')}
+              onClick={() => history.push('/article/edit')}
               className="elite-launch-btn"
               style={{ borderRadius: '16px', height: '52px', padding: '0 24px' }}
             >
@@ -243,7 +242,10 @@ const ArticleSpaceHub: React.FC = () => {
                     <div className="sub-id">ID: {item.id}</div>
                   </div>
 
-                  <div className="content-col">
+                  <div
+                    className="content-col"
+                    onClick={() => history.push(`/article/edit/${item.id}`)}
+                  >
                     <div className="main-text">
                       {item.type === 'KNOWLEDGE'
                         ? item.title
@@ -274,7 +276,7 @@ const ArticleSpaceHub: React.FC = () => {
                       type="text"
                       shape="circle"
                       icon={<EditOutlined />}
-                      onClick={() => message.info('正在对接编辑器...')}
+                      onClick={() => history.push(`/article/edit/${item.id}`)}
                     />
                     <Popconfirm
                       title="确定销毁此内容镜像？"

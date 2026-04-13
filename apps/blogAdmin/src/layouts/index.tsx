@@ -119,7 +119,7 @@ const MainLayout: React.FC = () => {
       label: '文章管理',
       icon: <ReadOutlined />,
       children: [
-        { key: '/article', label: '内容空间枢纽' },
+        { key: '/article/index', label: '内容空间枢纽' },
         { key: '/article/category', label: '主题维度管理' },
       ],
     },

@@ -4,6 +4,57 @@
 
 ---
 
+## 2026-04-13：Admin 构建架构优化与 Bug 修复 (Stable Build)
+
+### 🚀 重大变更
+
+- **构建系统架构调整 (MFSU De-Federation)**:
+  - **停用 MFSU**: 针对 `blogAdmin` (UmiJS 4) 彻底禁用了 MFSU 模块联邦加速。解决了由于 `bytemd` 等复杂第三方库与模块联邦容器冲突导致的 `Module not found in container` 系列报错。
+  - **React 实例强制单例**: 通过 Webpack `alias` 与 `require.resolve` 动态定位技术，强制整个应用（包含容器外包）共用同一份 React 内存上下文。彻底根治了 `Invalid hook call` 和 `useRef of null` 等多实例 Hook 异常。
+- **路由与菜单协议重塑**:
+  - **Key 冲突消除**: 将文章管理主页路径由 `/article` 迁移至 `/article/index`，并实现了顶级路由重定向。解决了 Ant Design Pro 菜单因父子路径重复导致的 `Duplicated key` 警告。
+  - **导航解耦**: 实现了路由跳转逻辑与侧边栏渲染逻辑的解耦，确保了 UI 状态的纯净性。
+- **编辑器依赖补全**:
+  - **高亮系统增强**: 显式安装并配置了 `highlight.js` 及其样式表，补全了 Markdown 编辑器在构建模式下的样式解析链路。
+- **环境深度清理**:
+  - 建立了针对 `src/.umi` 和 `node_modules/.cache` 的深度清理规范，确保架构变更后的构建环境 100% 纯净。
+
+### 📦 交付物
+
+- `apps/blogAdmin/.umirc.ts`: 切换至 `mfsu: false` 并锁定 React 实例的稳定版配置文件。
+- `apps/blogAdmin/package.json`: 新增 `highlight.js` 依赖。
+- `docs/sessions/2026-04-13_Admin_Build_Fix_Report.md`: 详尽的故障排除与架构优化报告。
+
+---
+
+## 2026-04-13：文章管理空间站 (Article Hub) 全栈整合与体验跃迁
+
+### 🚀 重大变更
+
+- **内容空间枢纽 (Article Hub) 落地**:
+  - **扁平化重构**: 彻底打破了“博文”与“随笔”的物理隔离，将其合并为统一的“内容空间枢纽”。通过 `type` 字段（`KNOWLEDGE` / `JOURNAL`）实现逻辑区分，极大地提升了管理效率。
+  - **审计日志级视觉重塑**: 采用了高精密 Grid 布局（对齐全栈审计中心），实现了智能多态渲染：博文模式突出展示标题与 Slug，随笔模式直接流式呈现正文片段与心情/地点元数据。
+  - **全量维度检索**: 引入了 `RangePicker` 时间范围筛选功能，支持按秒级精度定位内容镜像。优化了维度（分类）过滤逻辑，支持全量内容池的交叉索引。
+- **主题维度 (Dimension) 交互进化**:
+  - **Bento Matrix 布局**: 分类管理升级为 Bento Grid 磁贴模式，支持动态响应式格栅。
+  - **视觉对齐**: 引入了与“菜单管理”一致的侧边垂直条选中指示器，增强了全局交互系统的血统纯度。
+  - **像素级修复**: 深度校准了 `InputNumber` 内部组件的 `line-height` 与 `flex` 对齐，彻底解决了排序权重数字不居中的顽疾。
+- **后端 API 系统增强**:
+  - **高性能分页**: 在 `ArticleService` 中补全了分页逻辑，适配了前端 Elite List 的滚动与换页需求。
+  - **时间索引契约**: 优化了 `startDate` 与 `endDate` 的时间偏移处理，确保了跨时区场景下的查询准确性。
+- **架构清理与契约规范**:
+  - **路径统一**: 规范了 API 路由，将所有文章请求收敛至 `/article`，分类请求收敛至 `/category`。
+  - **代码瘦身**: 物理删除了已过时的 `knowledge.tsx` 和 `journal.tsx` 冗余文件，精简了路由配置。
+
+### 📦 交付物
+
+- `apps/blogAdmin/src/pages/article/index.tsx`: 旗舰级内容管理枢纽。
+- `apps/blogAdmin/src/pages/article/category.tsx`: 基于 Bento 布局的主题维度管理。
+- `apps/blogAdmin/src/pages/article/article.scss`: 统一的高冷黑白灰内容管理样式表。
+- `apps/blogApi/src/article/article.service.ts`: 具备高性能分页与多维搜索能力的后端服务。
+
+---
+
 ## 2026-04-09：资源宝库 (Vault) 全栈闭环与架构协议确立
 
 ### 🚀 重大变更
