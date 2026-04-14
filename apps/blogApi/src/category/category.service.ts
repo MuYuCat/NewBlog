@@ -42,7 +42,11 @@ export class CategoryService {
   async remove(id: number) {
     // 检查分类下是否有文章，防止级联误删
     const count = await this.prisma.article.count({
-      where: { categoryId: id },
+      where: {
+        categories: {
+          some: { id },
+        },
+      },
     });
     if (count > 0) throw new Error('该分类下仍有文章，无法删除');
     return this.prisma.category.delete({ where: { id } });

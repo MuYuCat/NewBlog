@@ -13,6 +13,7 @@ import {
   Tooltip,
   Empty,
   DatePicker,
+  Switch,
 } from 'antd';
 import {
   PlusOutlined,
@@ -21,6 +22,9 @@ import {
   DeleteOutlined,
   TagOutlined,
   ReloadOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
+  RocketOutlined,
 } from '@ant-design/icons';
 import { request, history } from '@umijs/max';
 import { gsap } from 'gsap';
@@ -33,16 +37,16 @@ const { RangePicker } = DatePicker;
 
 interface ArticleItem {
   id: number;
-  type: string;
   title?: string;
   content: string;
-  slug: string;
+  summary?: string;
   status: number;
   clicks: number;
   mood?: string;
   location?: string;
-  category?: { name: string };
+  categories: { id: number; name: string }[];
   createdAt: string;
+  updatedAt: string;
 }
 
 const ArticleSpaceHub: React.FC = () => {
@@ -55,7 +59,7 @@ const ArticleSpaceHub: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [keyword, setKeyword] = useState('');
-  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const [categoryIds, setCategoryIds] = useState<number[]>([]);
   const [dateRange, setDateRange] = useState<any>(null);
 
   const fetchCategories = async () => {
@@ -74,7 +78,7 @@ const ArticleSpaceHub: React.FC = () => {
         page,
         limit: pageSize,
         search: keyword || undefined,
-        categoryId,
+        categoryIds: categoryIds.length > 0 ? categoryIds.join(',') : undefined,
       };
       if (dateRange) {
         params.startDate = dateRange[0].toISOString();
@@ -89,7 +93,7 @@ const ArticleSpaceHub: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, keyword, categoryId, dateRange]);
+  }, [page, pageSize, keyword, categoryIds, dateRange]);
 
   useEffect(() => {
     fetchCategories();
@@ -108,12 +112,39 @@ const ArticleSpaceHub: React.FC = () => {
       fetchArticles();
     }, 300);
     return () => clearTimeout(timer);
-  }, [page, pageSize, keyword, categoryId, dateRange, fetchArticles]);
+  }, [page, pageSize, keyword, categoryIds, dateRange, fetchArticles]);
 
   const handleDelete = async (id: number) => {
     await request(`/article/${id}`, { method: 'DELETE' });
     message.success('内容镜像已从轨道销毁');
     fetchArticles();
+  };
+
+  const handleStatusToggle = async (id: number, currentStatus: number) => {
+    try {
+      const newStatus = currentStatus === 1 ? 2 : 1;
+      await request(`/article/${id}`, {
+        method: 'PATCH',
+        data: { status: newStatus },
+      });
+      message.success(newStatus === 1 ? '内容已恢复前台展示' : '内容已转为私密隐藏');
+      fetchArticles();
+    } catch {
+      message.error('显示状态同步异常');
+    }
+  };
+
+  const handlePublish = async (id: number) => {
+    try {
+      await request(`/article/${id}`, {
+        method: 'PATCH',
+        data: { status: 1 },
+      });
+      message.success('内容已成功从草稿箱发射');
+      fetchArticles();
+    } catch {
+      message.error('内容发射失败');
+    }
   };
 
   const getStatusTag = (status: number) => {
@@ -161,14 +192,16 @@ const ArticleSpaceHub: React.FC = () => {
 
         <div className="search-ribbon">
           <Select
-            placeholder="维度过滤"
+            mode="multiple"
+            placeholder="多维维度过滤"
             allowClear
+            maxTagCount="responsive"
             className="filter-item"
             variant="borderless"
-            value={categoryId}
-            onChange={setCategoryId}
+            value={categoryIds}
+            onChange={setCategoryIds}
             prefix={<TagOutlined style={{ opacity: 0.4 }} />}
-            style={{ width: '180px' }}
+            style={{ width: '240px' }}
           >
             {categories.map((c) => (
               <Option key={c.value} value={c.value}>
@@ -215,11 +248,11 @@ const ArticleSpaceHub: React.FC = () => {
 
       <div className="articles-main-content">
         <div className="table-header-row">
-          <span>类型 / ID</span>
-          <span>核心内容摘要</span>
+          <span>ID</span>
+          <span>核心内容摘要 (含简介)</span>
           <span>关联维度</span>
           <span>状态</span>
-          <span>发布时间</span>
+          <span>更新时间</span>
           <span style={{ textAlign: 'right' }}>管理</span>
         </div>
 
@@ -234,11 +267,10 @@ const ArticleSpaceHub: React.FC = () => {
               ))
           ) : articles.length > 0 ? (
             articles.map((item) => {
-              const dt = dayjs(item.createdAt);
+              const dt = dayjs(item.updatedAt);
               return (
-                <div key={item.id} className={`article-row type-${item.type}`}>
+                <div key={item.id} className={`article-row status-${item.status}`}>
                   <div className="type-col">
-                    <div className="type-tag">{item.type}</div>
                     <div className="sub-id">ID: {item.id}</div>
                   </div>
 
@@ -247,21 +279,23 @@ const ArticleSpaceHub: React.FC = () => {
                     onClick={() => history.push(`/article/edit/${item.id}`)}
                   >
                     <div className="main-text">
-                      {item.type === 'KNOWLEDGE'
-                        ? item.title
-                        : item.content.replace(/<[^>]+>/g, '')}
+                      {item.title || item.content.replace(/<[^>]+>/g, '').substring(0, 50)}
                     </div>
-                    <div className="sub-text">
-                      {item.type === 'KNOWLEDGE'
-                        ? `slug: ${item.slug}`
-                        : `mood: ${item.mood || 'normal'}`}
-                    </div>
+                    <div className="sub-text">{item.summary || '暂无简介描述'}</div>
                   </div>
 
                   <div className="dim-col">
-                    <Tag bordered={false} color="blue">
-                      {item.category?.name || '未定义'}
-                    </Tag>
+                    <Space size={4} wrap>
+                      {item.categories && item.categories.length > 0 ? (
+                        item.categories.map((cat) => (
+                          <Tag key={cat.id} bordered={false} color="blue">
+                            {cat.name}
+                          </Tag>
+                        ))
+                      ) : (
+                        <span style={{ opacity: 0.3, fontSize: '0.8rem' }}>未归类</span>
+                      )}
+                    </Space>
                   </div>
 
                   <div className="status-col">{getStatusTag(item.status)}</div>
@@ -272,12 +306,36 @@ const ArticleSpaceHub: React.FC = () => {
                   </div>
 
                   <div className="item-actions">
-                    <Button
-                      type="text"
-                      shape="circle"
-                      icon={<EditOutlined />}
-                      onClick={() => history.push(`/article/edit/${item.id}`)}
-                    />
+                    {item.status === 0 && (
+                      <Tooltip title="一键发布">
+                        <Button
+                          type="text"
+                          shape="circle"
+                          icon={<RocketOutlined />}
+                          onClick={() => handlePublish(item.id)}
+                          style={{ color: '#1890ff' }}
+                        />
+                      </Tooltip>
+                    )}
+                    {item.status !== 0 && (
+                      <Tooltip title={item.status === 1 ? '点击转为私密' : '点击恢复展示'}>
+                        <Button
+                          type="text"
+                          shape="circle"
+                          icon={item.status === 1 ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+                          onClick={() => handleStatusToggle(item.id, item.status)}
+                          style={{ color: item.status === 1 ? 'inherit' : '#faad14' }}
+                        />
+                      </Tooltip>
+                    )}
+                    <Tooltip title="重构内容">
+                      <Button
+                        type="text"
+                        shape="circle"
+                        icon={<EditOutlined />}
+                        onClick={() => history.push(`/article/edit/${item.id}`)}
+                      />
+                    </Tooltip>
                     <Popconfirm
                       title="确定销毁此内容镜像？"
                       onConfirm={() => handleDelete(item.id)}

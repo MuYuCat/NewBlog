@@ -5,8 +5,7 @@ interface ArticleQuery {
   page?: number;
   limit?: number;
   search?: string;
-  type?: string;
-  categoryId?: number;
+  categoryIds?: number[];
   status?: number;
   startDate?: string;
   endDate?: string;
@@ -21,8 +20,7 @@ export class ArticleService {
       page = 1,
       limit = 10,
       search,
-      type,
-      categoryId,
+      categoryIds,
       status,
       startDate,
       endDate,
@@ -31,9 +29,10 @@ export class ArticleService {
 
     const where: any = {
       AND: [
-        type ? { type } : {},
         status !== undefined ? { status } : {},
-        categoryId ? { categoryId } : {},
+        categoryIds && categoryIds.length > 0
+          ? { categories: { some: { id: { in: categoryIds } } } }
+          : {},
       ],
     };
 
@@ -64,11 +63,11 @@ export class ArticleService {
       this.prisma.article.findMany({
         where,
         include: {
-          category: { select: { id: true, name: true } },
+          categories: { select: { id: true, name: true } },
           author: { select: { username: true, avatar: true } },
           tags: true,
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { updatedAt: 'desc' },
         skip,
         take: limit,
       }),
@@ -82,7 +81,7 @@ export class ArticleService {
     const article = await this.prisma.article.findUnique({
       where: { id },
       include: {
-        category: true,
+        categories: true,
         tags: true,
         media: true,
       },
@@ -92,12 +91,15 @@ export class ArticleService {
   }
 
   async create(userId: number, data: any) {
-    const { tagIds, categoryId, ...rest } = data;
+    // 显式剔除已在模型中删除的字段，防止它们进入 Prisma 操作
+    const { tagIds, categoryIds, categoryId, type, slug, ...rest } = data;
     return this.prisma.article.create({
       data: {
         ...rest,
         authorId: userId,
-        categoryId: categoryId || null,
+        categories: {
+          connect: categoryIds?.map((id: number) => ({ id })) || [],
+        },
         tags: {
           connect: tagIds?.map((id: number) => ({ id })) || [],
         },
@@ -106,8 +108,8 @@ export class ArticleService {
   }
 
   async update(id: number, userId: number, data: any) {
-    const { tagIds, categoryId, ...rest } = data;
-    // 简单权限检查
+    // 显式剔除已在模型中删除的字段，防止它们进入 Prisma 操作
+    const { tagIds, categoryIds, categoryId, type, slug, ...rest } = data;
     const article = await this.prisma.article.findUnique({ where: { id } });
     if (!article) throw new NotFoundException('文章不存在');
 
@@ -115,10 +117,16 @@ export class ArticleService {
       where: { id },
       data: {
         ...rest,
-        categoryId: categoryId || null,
-        tags: {
-          set: tagIds?.map((id: number) => ({ id })) || [],
-        },
+        ...(categoryIds !== undefined && {
+          categories: {
+            set: categoryIds.map((id: number) => ({ id })),
+          },
+        }),
+        ...(tagIds !== undefined && {
+          tags: {
+            set: tagIds.map((id: number) => ({ id })),
+          },
+        }),
       },
     });
   }

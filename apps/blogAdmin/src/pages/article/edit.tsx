@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button, Input, Space, Select, Form, message, Row, Col } from 'antd';
+import { Button, Input, Space, Select, Form, message, Row, Col, Tooltip, Switch } from 'antd';
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -7,6 +7,8 @@ import {
   LoadingOutlined,
   LayoutOutlined,
   InfoCircleOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
 } from '@ant-design/icons';
 import { history, request, useParams } from '@umijs/max';
 import UniversalEditor from '@/components/Editor';
@@ -29,6 +31,7 @@ const ArticleEditPage: React.FC = () => {
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // 获取所有维度
     request('/category').then((res) => {
       const categoryList = Array.isArray(res) ? res : res?.data || [];
       setCategories(categoryList);
@@ -37,7 +40,15 @@ const ArticleEditPage: React.FC = () => {
     if (isEdit) {
       request(`/article/${id}`).then((res) => {
         const data = res?.data || res;
-        form.setFieldsValue(data);
+
+        // 适配多选维度回显与展示状态回显
+        const initialValues = {
+          ...data,
+          categoryIds: data.categories?.map((c: any) => c.id) || [],
+          status: data.status === 1, // 1 为 true (公开), 否则为 false
+        };
+
+        form.setFieldsValue(initialValues);
         setContent(data.content || '');
       });
     }
@@ -60,27 +71,22 @@ const ArticleEditPage: React.FC = () => {
       });
     });
     return () => ctx.revert();
-  }, [id]);
+  }, [id, form]);
 
-  const handlePublish = async (status: number = 1) => {
+  const handlePublish = async (explicitStatus?: number) => {
     try {
       const values = await form.validateFields();
       if (!content) return message.warning('无法发布空内容');
 
       setLoading(true);
-      const slug =
-        values.slug ||
-        values.title
-          .toLowerCase()
-          .replace(/\s+/g, '-')
-          .replace(/[^\w-]/g, '');
+
+      // 如果明确传了 0 (存为草稿)，则使用 0；否则根据 Switch 值决定 1 (公开) 或 2 (私密)
+      const finalStatus = explicitStatus === 0 ? 0 : values.status ? 1 : 2;
 
       const data = {
         ...values,
         content,
-        status,
-        type: values.type || 'KNOWLEDGE',
-        slug: slug,
+        status: finalStatus,
       };
 
       if (isEdit) {
@@ -111,8 +117,6 @@ const ArticleEditPage: React.FC = () => {
             className="back-btn"
           />
           <nav className="breadcrumb-nav">
-            {/* <span className="nav-item">智库</span>
-            <span className="nav-sep">/</span> */}
             <span className="nav-active">{isEdit ? '修订协议' : '草拟新篇'}</span>
           </nav>
         </div>
@@ -135,7 +139,7 @@ const ArticleEditPage: React.FC = () => {
               type="primary"
               icon={loading ? <LoadingOutlined /> : <RocketOutlined />}
               loading={loading}
-              onClick={() => handlePublish(1)}
+              onClick={() => handlePublish()}
               className="btn-primary"
             >
               {isEdit ? '更新协议' : '发布内容'}
@@ -179,18 +183,47 @@ const ArticleEditPage: React.FC = () => {
                   </div>
 
                   <Form.Item
-                    name="categoryId"
+                    name="categoryIds"
                     label="归属维度"
-                    rules={[{ required: true, message: '请指定维度' }]}
+                    rules={[{ required: true, message: '请至少指定一个维度' }]}
                     className="sidebar-item"
                   >
-                    <Select placeholder="选择内容维度" className="v2-select">
+                    <Select
+                      mode="multiple"
+                      placeholder="选择内容维度 (支持多选)"
+                      className="v2-select"
+                      maxTagCount="responsive"
+                    >
                       {categories.map((c) => (
                         <Option key={c.id} value={c.id}>
                           {c.label || c.name}
                         </Option>
                       ))}
                     </Select>
+                  </Form.Item>
+
+                  <Form.Item
+                    name="status"
+                    label="前台展示"
+                    valuePropName="checked"
+                    initialValue={true}
+                    className="sidebar-item"
+                  >
+                    <Switch
+                      checkedChildren={
+                        <Space>
+                          <EyeOutlined />
+                          <span>公开</span>
+                        </Space>
+                      }
+                      unCheckedChildren={
+                        <Space>
+                          <EyeInvisibleOutlined />
+                          <span>私密</span>
+                        </Space>
+                      }
+                      className="v2-status-switch"
+                    />
                   </Form.Item>
 
                   <Form.Item name="summary" label="内容摘要" className="sidebar-item">
@@ -206,13 +239,6 @@ const ArticleEditPage: React.FC = () => {
                     <p>摘要将作为预览片段显示，建议字数控制在 150 以内以获得最佳展示效果。</p>
                   </div>
                 </div>
-
-                <Form.Item name="type" hidden initialValue="KNOWLEDGE">
-                  <Input />
-                </Form.Item>
-                <Form.Item name="slug" hidden>
-                  <Input />
-                </Form.Item>
               </div>
             </Col>
           </Row>

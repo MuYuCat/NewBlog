@@ -24,18 +24,20 @@ export class ArticleController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
-    @Query('type') type?: string,
-    @Query('categoryId') categoryId?: string,
+    @Query('categoryIds') categoryIds?: string, // 接收逗号分隔或单个
     @Query('status') status?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
+    const parsedCategoryIds = categoryIds
+      ? categoryIds.split(',').map((id) => parseInt(id))
+      : undefined;
+
     return this.articleService.findAll({
       page: page ? parseInt(page) : undefined,
       limit: limit ? parseInt(limit) : undefined,
       search,
-      type,
-      categoryId: categoryId ? parseInt(categoryId) : undefined,
+      categoryIds: parsedCategoryIds,
       status: status ? parseInt(status) : undefined,
       startDate,
       endDate,
