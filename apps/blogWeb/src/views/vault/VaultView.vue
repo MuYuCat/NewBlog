@@ -31,7 +31,7 @@ const isLoading = ref(true);
 const fetchBookmarks = async () => {
   isLoading.value = true;
   try {
-    const data = await request<Bookmark[]>('/public/vault/bookmarks', {
+    const data = await request<Bookmark[]>('/vault/bookmarks', {
       params: {
         search: search.value,
         tagIds: selectedTagIds.value.join(','),
@@ -53,7 +53,7 @@ const fetchBookmarks = async () => {
 // 获取所有标签
 const fetchTags = async () => {
   try {
-    const data = await request<Tag[]>('/public/vault/tags');
+    const data = await request<Tag[]>('/vault/tags');
     tags.value = data;
   } catch (error) {
     console.error('Failed to fetch tags:', error);
@@ -63,7 +63,7 @@ const fetchTags = async () => {
 // 记录点击
 const handleCardClick = async (bookmark: Bookmark) => {
   try {
-    await request(`/public/vault/bookmarks/${bookmark.id}/click`, { method: 'PATCH' });
+    await request(`/vault/bookmarks/${bookmark.id}/click`, { method: 'PATCH' });
   } catch (e) {
     // 忽略点击记录失败
   }

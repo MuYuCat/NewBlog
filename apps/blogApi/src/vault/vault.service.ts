@@ -7,12 +7,12 @@ export class VaultService {
   constructor(private prisma: PrismaService) {}
 
   // --- Bookmark 业务 ---
-
   async findAllBookmarks(
     userId?: number,
     query?: { search?: string; tagIds?: number[]; sort?: 'latest' | 'hottest' },
   ) {
     const { search, tagIds, sort = 'latest' } = query || {};
+    const isAdmin = userId !== undefined;
 
     // 排序逻辑映射
     const orderByMap = {
@@ -22,9 +22,10 @@ export class VaultService {
 
     return this.prisma.bookmark.findMany({
       where: {
-        ...(userId ? { userId } : {}), // 如果传了 userId 则按用户过滤
+        // 如果需要基于状态过滤，在这里增加逻辑：
+        // status: isAdmin ? undefined : 1,
         AND: [
-          search
+          ...(search
             ? {
                 OR: [
                   { title: { contains: search } },
@@ -32,7 +33,7 @@ export class VaultService {
                   { url: { contains: search } },
                 ],
               }
-            : {},
+            : {}),
           tagIds && tagIds.length > 0
             ? {
                 tags: {

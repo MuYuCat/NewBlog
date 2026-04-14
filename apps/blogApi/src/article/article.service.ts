@@ -15,7 +15,7 @@ interface ArticleQuery {
 export class ArticleService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(query: ArticleQuery) {
+  async findAll(query: ArticleQuery, isAdmin: boolean = false) {
     const {
       page = 1,
       limit = 10,
@@ -27,15 +27,20 @@ export class ArticleService {
     } = query;
     const skip = (page - 1) * limit;
 
+    // 权限与状态过滤逻辑
+    let statusFilter: any = status !== undefined ? { status } : {};
+    if (!isAdmin && status === undefined) {
+      statusFilter = { status: 1 }; // 游客默认只看已发布
+    }
+
     const where: any = {
       AND: [
-        status !== undefined ? { status } : {},
+        statusFilter,
         categoryIds && categoryIds.length > 0
           ? { categories: { some: { id: { in: categoryIds } } } }
           : {},
       ],
     };
-
     if (search) {
       where.AND.push({
         OR: [
@@ -133,5 +138,16 @@ export class ArticleService {
 
   async remove(id: number) {
     return this.prisma.article.delete({ where: { id } });
+  }
+
+  async incrementClicks(id: number) {
+    return this.prisma.article.update({
+      where: { id },
+      data: {
+        clicks: {
+          increment: 1,
+        },
+      },
+    });
   }
 }
