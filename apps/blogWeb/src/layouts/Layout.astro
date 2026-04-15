@@ -151,12 +151,11 @@ const { title, description = "NewBlog - 个人门户、游戏轨迹与知识智�
     <script>
       const reportVisit = () => {
         const currentPath = window.location.pathname;
-        fetch(`/api/public-menu/visit?from=${encodeURIComponent(currentPath)}`, { 
+        fetch(`/api/visit?from=${encodeURIComponent(currentPath)}`, {
           method: 'GET',
-          headers: { 'X-Log-Type': 'PAGE_WEB' } 
+          headers: { 'X-Log-Type': 'PAGE_WEB' }
         }).catch(() => {});
       };
-
       document.addEventListener('astro:page-load', reportVisit);
     </script>
   </body>

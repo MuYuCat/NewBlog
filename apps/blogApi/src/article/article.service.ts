@@ -10,6 +10,7 @@ interface ArticleQuery {
   startDate?: string;
   endDate?: string;
   mode?: number; // 1: 大众, 2: 心语
+  sort?: 'latest' | 'hottest';
 }
 
 @Injectable()
@@ -26,8 +27,15 @@ export class ArticleService {
       startDate,
       endDate,
       mode,
+      sort = 'latest',
     } = query;
     const skip = (page - 1) * limit;
+
+    // 排序逻辑映射
+    const orderByMap = {
+      latest: { updatedAt: 'desc' as const },
+      hottest: { clicks: 'desc' as const },
+    };
 
     // 权限与状态过滤逻辑
     let statusFilter: any = status !== undefined ? { status } : {};
@@ -84,11 +92,11 @@ export class ArticleService {
       this.prisma.article.findMany({
         where,
         include: {
-          categories: { select: { id: true, name: true } },
+          categories: { select: { id: true, name: true, type: true } },
           author: { select: { username: true, avatar: true } },
           tags: true,
         },
-        orderBy: { updatedAt: 'desc' },
+        orderBy: orderByMap[sort] || orderByMap.latest,
         skip,
         take: limit,
       }),

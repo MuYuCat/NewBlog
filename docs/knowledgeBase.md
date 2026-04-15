@@ -250,14 +250,20 @@ TOTP 是基于 **HMAC** 算法的变体，其核心公式为：
 
 ## 21. 全栈影子请求埋点架构 (Shadow Request Tracking)
 
-针对 Astro (SSG/SSR) 静态页面访问无法被后端拦截器直接捕获的问题，项目采用了一套“无感影子请求”方案。
+针对 Astro (SSG/SSR) 静态页面访问无法被后端直接感知的问题，项目采用了一套“无感影子请求”方案，实现了全站 PV/UV 的实时监控。
 
 ### 21.1 技术闭环
 
-1.  **前端触发**: 在全局 Layout 中监听 `astro:page-load`，触发 `fetch('/api/visit?from=path')`。
-2.  **分类打标**: 通过自定义请求头 `X-Log-Type: PAGE_WEB` (或 `PAGE_ADMIN`) 进行来源声明。
-3.  **后端捕获**: 全局 `LoggingInterceptor` 自动提取请求头，将该行为标记为页面访问而非 API 调用。
-4.  **统计去重**: 报表统计 PV 时，仅筛选特定 `logType` 的记录，彻底避免了接口调用导致的流量虚高。
+1.  **前端自动触发**:
+    - **Web 侧**: 在 `Layout.astro` 中监听 `astro:page-load`，触发 `fetch('/api/visit?from=path')`。
+    - **Admin 侧**: 在全局 Layout 的 `useEffect` 中监听 `location.pathname` 变化，发送同名请求。
+2.  **分类打标 (Type Tagging)**: 通过自定义请求头 `X-Log-Type` 声明行为性质：
+    - `PAGE_WEB`: 前台门户页面访问。
+    - `PAGE_ADMIN`: 管理后台页面访问。
+    - `API` (默认): 纯业务接口调用。
+3.  **后端中转 (Unified Endpoint)**: 在 `AppController` 中开辟顶级的 `GET /visit` 接口，作为全站埋点的唯一流量入口。
+4.  **AOP 自动捕获**: 全局 `LoggingInterceptor` 拦截所有流经 `/visit` 的请求，提取地理位置（GeoIP）、IP、耗时及 `X-Log-Type`，并持久化至 `AuditLog` 表。
+5.  **统计去重**: 在后台报表统计 PV 时，仅通过筛选 `logType` 即可完美区分“页面访问量”与“接口调用量”，彻底解决了流量虚高问题。
 
 ---
 

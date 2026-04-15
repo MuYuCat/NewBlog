@@ -88,7 +88,7 @@ const MainLayout: React.FC = () => {
     }
 
     // 管理后台页面上报 (PAGE_ADMIN)
-    fetch('/api/public-menu/visit?from=' + encodeURIComponent(location.pathname), {
+    fetch('/api/visit?from=' + encodeURIComponent(location.pathname), {
       method: 'GET',
       headers: { 'X-Log-Type': 'PAGE_ADMIN' },
     }).catch(() => {});

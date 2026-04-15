@@ -21,10 +21,4 @@ export class PublicMenuController {
 
     return filterActive(tree);
   }
-
-  @Get('visit')
-  reportVisit() {
-    // 纯空接口，仅为触发 LoggingInterceptor 记录 PV
-    return { success: true };
-  }
 }

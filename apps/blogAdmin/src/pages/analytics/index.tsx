@@ -178,7 +178,9 @@ const AnalyticsPage: React.FC = () => {
   };
 
   const renderPath = (log: AuditLog) => {
-    if (log.path.includes('/public-menu/visit') && log.query?.from) {
+    // 兼容新旧 visit 路径
+    const isVisit = log.path.includes('/visit') || log.path.includes('/public-menu/visit');
+    if (isVisit && log.query?.from) {
       const isWeb = log.logType === 'PAGE_WEB';
       return {
         main: `${isWeb ? '前台' : '后台'}: ${log.query.from}`,
