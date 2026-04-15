@@ -26,21 +26,25 @@ export class VaultService {
         // status: isAdmin ? undefined : 1,
         AND: [
           ...(search
-            ? {
-                OR: [
-                  { title: { contains: search } },
-                  { description: { contains: search } },
-                  { url: { contains: search } },
-                ],
-              }
-            : {}),
-          tagIds && tagIds.length > 0
-            ? {
-                tags: {
-                  some: { id: { in: tagIds } },
+            ? [
+                {
+                  OR: [
+                    { title: { contains: search } },
+                    { description: { contains: search } },
+                    { url: { contains: search } },
+                  ],
                 },
-              }
-            : {},
+              ]
+            : []),
+          ...(tagIds && tagIds.length > 0
+            ? [
+                {
+                  tags: {
+                    some: { id: { in: tagIds } },
+                  },
+                },
+              ]
+            : []),
         ],
       },
       include: {

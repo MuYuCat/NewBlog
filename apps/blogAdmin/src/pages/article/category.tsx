@@ -11,8 +11,17 @@ import {
   Popconfirm,
   Empty,
   Skeleton,
+  Radio,
+  Tag,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, ClusterOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ClusterOutlined,
+  EyeOutlined,
+  HeartOutlined,
+} from '@ant-design/icons';
 import { request } from '@umijs/max';
 import { gsap } from 'gsap';
 import './article.scss';
@@ -23,6 +32,7 @@ interface CategoryItem {
   id: number;
   name: string;
   slug: string;
+  type: number;
   order: number;
   _count?: {
     articles: number;
@@ -63,7 +73,7 @@ const CategoryPage: React.FC = () => {
   const handleAdd = () => {
     setEditingItem(null);
     form.resetFields();
-    form.setFieldsValue({ order: 0 });
+    form.setFieldsValue({ order: 0, type: 1 });
     setIsModalOpen(true);
   };
 
@@ -165,7 +175,20 @@ const CategoryPage: React.FC = () => {
                   onClick={() => toggleSelect(item)}
                 >
                   <div className="card-head">
-                    <span className="name">{item.name}</span>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      <span className="name">{item.name}</span>
+                      {item.type === 2 ? (
+                        <HeartOutlined style={{ color: '#ff4d4f', fontSize: '14px' }} />
+                      ) : (
+                        <EyeOutlined style={{ opacity: 0.3, fontSize: '14px' }} />
+                      )}
+                    </div>
                     <span className="slug">{item.slug}</span>
                   </div>
                   <div className="card-foot">
@@ -297,6 +320,16 @@ const CategoryPage: React.FC = () => {
                         <code style={{ color: 'var(--text-main)' }}>{selectedCategory.slug}</code>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ opacity: 0.5 }}>属性归类:</span>
+                        <Tag
+                          color={selectedCategory.type === 2 ? 'magenta' : 'blue'}
+                          bordered={false}
+                          style={{ borderRadius: '4px', margin: 0 }}
+                        >
+                          {selectedCategory.type === 2 ? '心语' : '大众'}
+                        </Tag>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ opacity: 0.5 }}>创建时间:</span>
                         <span>{new Date(selectedCategory.createdAt).toLocaleString()}</span>
                       </div>
@@ -351,6 +384,20 @@ const CategoryPage: React.FC = () => {
           </Form.Item>
           <Form.Item name="slug" label="标识 (Slug)" rules={[{ required: true }]}>
             <Input className="elite-input" placeholder="如: frontend" />
+          </Form.Item>
+          <Form.Item name="type" label="维度属性" rules={[{ required: true }]}>
+            <Radio.Group className="elite-radio-group">
+              <Radio.Button value={1}>
+                <Space>
+                  <EyeOutlined /> 大众
+                </Space>
+              </Radio.Button>
+              <Radio.Button value={2}>
+                <Space>
+                  <HeartOutlined /> 心语
+                </Space>
+              </Radio.Button>
+            </Radio.Group>
           </Form.Item>
           <Form.Item name="order" label="排序权重">
             <InputNumber className="elite-input" style={{ width: '100%' }} />

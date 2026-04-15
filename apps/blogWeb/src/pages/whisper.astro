@@ -1,13 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import ArticleList from '../views/article/ArticleList.vue';
+import WhisperList from '../views/article/WhisperList.vue';
 
-// 正常文章页面，mode=1 (大众)
+// 喃喃自语页面，mode=2 (心语)
 ---
 
-<Layout title="知识智库 - NewBlog">
+<Layout title="喃喃自语 - NewBlog">
   <main class="page-bg">
-    <ArticleList mode={1} client:load />
+    <WhisperList client:load />
   </main>
 </Layout>
 

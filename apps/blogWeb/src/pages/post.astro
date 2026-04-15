@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ArticleDetail from '../views/article/ArticleDetail.vue';
+
+const id = Astro.url.searchParams.get('id');
+---
+
+<Layout title="内容详情 - NewBlog">
+  <main class="post-page">
+    <nav class="back-nav">
+      <a href="javascript:history.back()">← BACK</a>
+    </nav>
+
+    <ArticleDetail 
+      initialId={id} 
+      client:load 
+    />
+  </main>
+</Layout>
+
+<style>
+  .post-page {
+    background: #000;
+    min-height: 100vh;
+    padding-top: 100px;
+  }
+
+  .back-nav {
+    position: fixed;
+    top: 100px;
+    left: 40px;
+    z-index: 100;
+    
+    a {
+      font-size: 0.7rem;
+      color: #666;
+      text-decoration: none;
+      letter-spacing: 0.2em;
+      transition: color 0.3s;
+      &:hover { color: #fff; }
+    }
+  }
+</style>

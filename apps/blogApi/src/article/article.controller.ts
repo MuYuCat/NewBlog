@@ -32,6 +32,7 @@ export class ArticleController {
     @Query('status') status?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('mode') mode?: string,
   ) {
     const parsedCategoryIds = categoryIds
       ? categoryIds.split(',').map((id) => parseInt(id))
@@ -60,6 +61,7 @@ export class ArticleController {
         status: status ? parseInt(status) : undefined,
         startDate,
         endDate,
+        mode: mode ? parseInt(mode) : undefined,
       },
       isAdmin,
     );

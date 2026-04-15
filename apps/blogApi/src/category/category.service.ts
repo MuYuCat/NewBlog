@@ -25,13 +25,18 @@ export class CategoryService {
     return category;
   }
 
-  async create(data: { name: string; slug: string; order?: number }) {
+  async create(data: {
+    name: string;
+    slug: string;
+    order?: number;
+    type?: number;
+  }) {
     return this.prisma.category.create({ data });
   }
 
   async update(
     id: number,
-    data: { name?: string; slug?: string; order?: number },
+    data: { name?: string; slug?: string; order?: number; type?: number },
   ) {
     return this.prisma.category.update({
       where: { id },

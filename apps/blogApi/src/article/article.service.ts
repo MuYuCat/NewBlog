@@ -9,6 +9,7 @@ interface ArticleQuery {
   status?: number;
   startDate?: string;
   endDate?: string;
+  mode?: number; // 1: 大众, 2: 心语
 }
 
 @Injectable()
@@ -24,6 +25,7 @@ export class ArticleService {
       status,
       startDate,
       endDate,
+      mode,
     } = query;
     const skip = (page - 1) * limit;
 
@@ -41,6 +43,20 @@ export class ArticleService {
           : {},
       ],
     };
+
+    // 模式过滤逻辑
+    if (mode === 2) {
+      // 心语模式：至少有一个分类的 type 为 2
+      where.AND.push({
+        categories: { some: { type: 2 } },
+      });
+    } else if (mode === 1) {
+      // 大众模式：所有关联分类的 type 都必须是 1 (或者没有分类也算大众)
+      // 注意：Prisma 的 every 在没有关联时也返回 true，这符合“默认大众”的逻辑
+      where.AND.push({
+        categories: { every: { type: 1 } },
+      });
+    }
     if (search) {
       where.AND.push({
         OR: [
