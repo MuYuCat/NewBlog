@@ -101,11 +101,27 @@ const { title, description = "NewBlog - 个人门户、游戏轨迹与知识智�
         -webkit-font-smoothing: antialiased;
         scroll-behavior: smooth;
         transition: background 0.3s, color 0.3s;
+        scrollbar-gutter: stable; // 关键：防止宽度抖动
       }
 
       body {
         margin: 0;
         line-height: 1.8;
+        scrollbar-gutter: stable; // 关键：防止宽度抖动
+        
+        // 当特效开启时，锁定滚动并隐藏干扰元素
+        &.lock-scroll {
+          overflow: hidden !important;
+
+          header, footer {
+            opacity: 0 !important;
+            pointer-events: none !important;
+          }
+        }
+      }
+
+      header, footer {
+        transition: opacity 0.8s ease;
       }
 
       /* 滚动条优化 */
