@@ -1,0 +1,71 @@
+.elite-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+  background: var(--card-bg, #fff);
+
+  .ant-card-head {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    .ant-card-head-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      font-size: 14px;
+      text-transform: uppercase;
+      color: #888;
+    }
+  }
+}
+
+.game-cover-mini {
+  border-radius: 4px;
+  object-fit: cover;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.status-info {
+  font-size: 12px;
+  color: #999;
+  line-height: 2;
+  p {
+    margin: 0;
+  }
+}
+
+.empty-tip {
+  padding: 40px 0;
+  text-align: center;
+  color: #ccc;
+  p {
+    margin: 12px 0;
+    font-size: 13px;
+  }
+}
+
+.code-editor {
+  font-family: 'Fira Code', 'Courier New', monospace;
+  background: #1e1e1e !important;
+  color: #d4d4d4 !important;
+  font-size: 13px;
+  border-radius: 8px;
+  border: none;
+  padding: 16px;
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* 暗色模式适配 */
+[data-ant-color-scheme='dark'] {
+  .elite-card {
+    background: #141416;
+    border: 1px solid #303030;
+    .ant-card-head {
+      border-bottom: 1px solid #303030;
+    }
+  }
+  .code-editor {
+    background: #000 !important;
+  }
+}

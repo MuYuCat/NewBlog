@@ -14,12 +14,15 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { VaultModule } from './vault/vault.module';
 import { ArticleModule } from './article/article.module';
 import { CategoryModule } from './category/category.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { GameModule } from './game/game.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
       serveRoot: '/', // 基础路径，访问 uploads 则是 /uploads
@@ -30,6 +33,7 @@ import { CategoryModule } from './category/category.module';
     VaultModule,
     ArticleModule,
     CategoryModule,
+    GameModule,
   ],
   controllers: [AppController],
   providers: [

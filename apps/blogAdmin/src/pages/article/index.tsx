@@ -13,7 +13,6 @@ import {
   Tooltip,
   Empty,
   DatePicker,
-  Switch,
 } from 'antd';
 import {
   PlusOutlined,
@@ -88,7 +87,7 @@ const ArticleSpaceHub: React.FC = () => {
       const res = await request('/article', { params });
       setArticles(res.items || []);
       setTotal(res.total || 0);
-    } catch (e) {
+    } catch {
       message.error('内容空间数据同步失败');
     } finally {
       setLoading(false);

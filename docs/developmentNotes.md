@@ -225,4 +225,91 @@ npx degit dcloudio/uni-preset-vue#vite-ts blogMobile
 
 ---
 
-_Last updated: 2026-04-02_
+---
+
+## 10. 智能文档解析算力节点 (MinerU)
+
+针对 PDF/DOCX 到 Markdown 的高质量解析需求，本项目集成 **MinerU**。采用 **“Mac Mini 边缘计算 + MinerU-webui 引擎 + 按需唤醒”** 架构。
+
+### 10.1 部署架构 (Micro-Service Architecture)
+
+1.  **算力节点 (Mac Mini)**: 物理部署于本地，利用 Apple Silicon (MPS) 加速。
+    - **`MinerU-webui` (核心引擎)**: 克隆自 [MinerU-webui](https://github.com/liuhuapiaoyuan/MinerU-webui)。它不仅提供了强大的可视化界面，还内置了 `api.py` 方便外部调用。
+    - **`control-api.js` (控制代理)**: 极轻量 Node.js 服务，负责接收启动/关闭指令并管理 `MinerU-webui` 进程。
+2.  **网络隧道 (Network Tunneling)**: 使用 **cpolar** 或 **Cloudflare Tunnel** 将本地 8080 (MinerU API/UI) 与 8001 (控制) 端口暴露至公网。
+3.  **业务中转 (Next.js API)**: `blogAdmin` 调用 Next.js 接口，Next.js 验证 `SECRET_TOKEN` 后转发至算力节点。
+
+### 10.2 进程控制逻辑 (Process Management)
+
+使用 **PM2** 进行服务生命周期管理：
+
+```bash
+# 注册但不启动 MinerU-webui
+pm2 start python3 --name "mineru-webui" -- webui.py
+pm2 stop mineru-webui
+
+# 常驻启动控制代理
+pm2 start node --name "mineru-controller" -- control-api.js
+```
+
+#### A. 按需启动与自动释放 (Smart Idle)
+
+- **启动时间**: 模型加载约需 **20-30s**。
+- **调用逻辑**: Next.js 博客后端通过 `fetch` 调用 `MinerU-webui` 提供的 API 接口（如 `/api/parse`）。
+- **自动关闭**: `control-api.js` 内置定时器。若 30 分钟内无解析请求，自动执行 `pm2 stop mineru-webui` 释放 16GB 内存。
+
+### 10.3 前端交互规格 (UX/UI Specs)
+
+1.  **状态感知**: 前端调用 `/api/mineru-control?action=status` 获取模型当前状态 (`online` / `stopping` / `offline`)。
+2.  **唤醒轮询**: 用户点击“启动”后，前端进入 Loading 状态，每隔 3 秒请求一次 `/health` 接口，直到返回成功，解除锁定。
+3.  **视觉重塑 (Elite UI Integration)**:
+    - **彻底隐藏原生 UI**: 严禁将 `MinerU-webui` 的 8080/7860 端口直接暴露给最终用户。
+    - **样式同步 (Style Sync)**:
+      - 强制解析结果使用项目预设字体：`--text-h` (Cormorant Garamond) 和 `--text` (Montserrat)。
+      - 所有 UI 状态（进度条、指示灯）读取 `src/style.css` 定义的 CSS 变量。
+    - **动效链路**: 解析状态与 GSAP 补间动画绑定，将 API 的异步等待过程转化为具有“物理呼吸感”的视觉叙事。
+4.  **安全性**:
+    - 算力节点仅接受带 `SECRET_TOKEN` 的 HTTP 请求。
+    - 传输层强制开启 HTTPS 隧道。
+
+### 10.4 安全防护机制 (Security & Anti-Abuse)
+
+由于 MinerU 是计算密集型任务，必须在 **Next.js API 网关** 或 **NestJS 后端** 实施严苛的防护。
+
+1.  **限流策略 (Sliding Window)**:
+    - 采用滑动窗口算法，限制单 IP 每分钟最多请求 2 次，每天最多 20 次。
+2.  **暴力调用识别**:
+    - 若单 IP 在 10 秒内连续触发 3 次以上请求，系统自动将其标记为“异常”。
+3.  **自动封禁 (Auto-Banning)**:
+    - 异常 IP 将被记录在数据库（或 Redis）的 `Blacklist` 表中。
+    - **封禁时长**: 默认 24 小时。
+    - **拦截位置**: 在请求转发给 Mac Mini 算力节点前进行拦截，返回 `403 Forbidden`。
+4.  **日志溯源**:
+    - 每次被拦截的请求都会记录 IP、地理位置及触发时间，方便在后台 `blogAdmin` 进行审计。
+
+---
+
+## 11. Elite PPT 重构 (EPR) 技术实现
+
+EPR 是一个多引擎协作的重构管道，旨在实现 1:1 的 PPT 还原。
+
+### 11.1 核心技术链路 (The EPR Pipeline)
+
+1.  **背景提取 (Visual Anchor)**:
+    - 使用 `IOPaint` 或 `Lama` 擦除原图文字，生成纯净底图作为 PPT 幻灯片背景。
+2.  **结构提取 (MinerU Parser)**:
+    - 调用 MinerU 获取表格 JSON 及公式 LaTeX。
+    - 利用物理坐标 ($x, y, w, h$) 定位元素。
+3.  **原生构建 (python-pptx)**:
+    - **表格**: 根据 MinerU 提供的行列数据，在原位绘制 `Native Table`。
+    - **公式**: 采用 `latex2mml` 将公式转为 `Office Math`。
+    - **文本**: 基于多模态 AI (Gemini/GPT) 推荐的字号和加粗，生成原生文本框。
+
+### 11.2 开发准则
+
+- **禁止硬编码**: 坐标计算必须适配标准幻灯片比例 (16:9 或 4:3)。
+- **字体回退策略**: 优先匹配系统字体，若不匹配，采用最接近的开源字体（如 Noto Sans SC）。
+
+---
+
+_Last updated: 2026-04-16_ (MinerU 算力节点与 EPR 安全重构方案定案)

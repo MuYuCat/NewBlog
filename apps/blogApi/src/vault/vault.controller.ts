@@ -45,7 +45,7 @@ export class VaultController {
           secret: process.env.JWT_SECRET || 'muyucat-default-secret-key-2026',
         });
         isAdmin = !!payload;
-      } catch (e) {
+      } catch {
         isAdmin = false;
       }
     }

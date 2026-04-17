@@ -152,7 +152,7 @@ const getPlaceholderStyle = (str: string) => {
   <div class="vault-container">
     <!-- Header Section -->
     <header class="vault-header">
-      <h1 class="vault-title">Vault / 资源宝库</h1>
+      <h1 class="vault-title">资源宝库 / Vault</h1>
       <p class="vault-subtitle">收藏灵感、工具与跨领域的知识片段</p>
     </header>
 

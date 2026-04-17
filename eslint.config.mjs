@@ -19,7 +19,9 @@ export default [
       '**/build/**',
       '**/.next/**',
       '**/.umi/**',
+      '**/.umi-production/**',
       '**/pnpm-lock.yaml',
+      '**/*.vue',
     ],
   },
   // 2. JavaScript 基础配置
@@ -49,7 +51,7 @@ export default [
       '@typescript-eslint/no-unused-vars': 'warn',
       'no-console': 'off',
       // 彻底关闭所有可能引起 "Unsafe any" 报警的类型感知规则
-      '@typescript-eslint/no-explicit-any': 'off', 
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',

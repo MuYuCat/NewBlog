@@ -12,7 +12,6 @@ export class VaultService {
     query?: { search?: string; tagIds?: number[]; sort?: 'latest' | 'hottest' },
   ) {
     const { search, tagIds, sort = 'latest' } = query || {};
-    const isAdmin = userId !== undefined;
 
     // 排序逻辑映射
     const orderByMap = {

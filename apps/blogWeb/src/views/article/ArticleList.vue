@@ -176,7 +176,7 @@ onMounted(() => {
               <span class="publish-date">{{ formatDate(item.createdAt) }}</span>
             </div>
             <div class="meta-right">
-              <span class="read-time">{{ estimateReadTime(item.content) }} MIN READ</span>
+              <span class="read-time">{{ estimateReadTime(item.content) }} 分钟阅读</span>
             </div>
           </div>
 
@@ -235,7 +235,7 @@ onMounted(() => {
 
     <div v-if="total > limit" class="pagination-wrapper">
       <div class="pagination-glass">
-        <button :disabled="page === 1" @click="changePage(page - 1)" class="nav-btn">上一页</button>
+        <button :disabled="page === 1" @click="changePage(page - 1)" class="nav-btn">往昔</button>
         <div class="page-indicator">
           <span class="current">{{ page }}</span>
           <span class="sep">/</span>
@@ -246,7 +246,7 @@ onMounted(() => {
           @click="changePage(page + 1)"
           class="nav-btn"
         >
-          下一页
+          今朝
         </button>
       </div>
     </div>

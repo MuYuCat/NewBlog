@@ -121,7 +121,7 @@ export class ArticleService {
 
   async create(userId: number, data: any) {
     // 显式剔除已在模型中删除的字段，防止它们进入 Prisma 操作
-    const { tagIds, categoryIds, categoryId, type, slug, ...rest } = data;
+    const { tagIds, categoryIds, ...rest } = data;
     return this.prisma.article.create({
       data: {
         ...rest,
@@ -138,7 +138,7 @@ export class ArticleService {
 
   async update(id: number, userId: number, data: any) {
     // 显式剔除已在模型中删除的字段，防止它们进入 Prisma 操作
-    const { tagIds, categoryIds, categoryId, type, slug, ...rest } = data;
+    const { tagIds, categoryIds, ...rest } = data;
     const article = await this.prisma.article.findUnique({ where: { id } });
     if (!article) throw new NotFoundException('文章不存在');
 
@@ -164,8 +164,11 @@ export class ArticleService {
     return this.prisma.article.delete({ where: { id } });
   }
 
-  async incrementClicks(id: number) {
-    return this.prisma.article.update({
+  async incrementClicks(id: number, reqInfo?: { ip: string; ua: string }) {
+    const { ip, ua } = reqInfo || {};
+
+    // 1. 增加总点击量
+    const updatedArticle = await this.prisma.article.update({
       where: { id },
       data: {
         clicks: {
@@ -173,5 +176,29 @@ export class ArticleService {
         },
       },
     });
+
+    // 2. 记录详细的审计日志（用于多维热度分析）
+    try {
+      await this.prisma.auditLog.create({
+        data: {
+          logType: 'RESOURCE_CLICK',
+          method: 'PATCH',
+          path: `/article/${id}/click`,
+          status: 200,
+          ip: ip || 'unknown',
+          userAgent: ua || 'unknown',
+          duration: 0,
+          body: {
+            articleId: id,
+            title: updatedArticle.title || '无标题内容',
+            type: 'ARTICLE',
+          },
+        },
+      });
+    } catch (e) {
+      console.error('[ArticleService] Failed to create click log:', e);
+    }
+
+    return updatedArticle;
   }
 }

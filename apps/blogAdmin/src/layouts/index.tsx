@@ -113,7 +113,15 @@ const MainLayout: React.FC = () => {
   const menuItems = [
     { key: '/dashboard', label: '仪表盘', icon: <DashboardOutlined /> },
     { key: '/menu', label: '菜单管理', icon: <MenuOutlined /> },
-    { key: '/game', label: '游戏管理', icon: <PlaySquareOutlined /> },
+    {
+      key: '/game',
+      label: '游戏管理',
+      icon: <PlaySquareOutlined />,
+      children: [
+        { key: '/game/index', label: '档案中心' },
+        { key: '/game/config', label: '同步指挥塔' },
+      ],
+    },
     {
       key: '/article',
       label: '文章管理',
@@ -130,7 +138,16 @@ const MainLayout: React.FC = () => {
   const getActiveKey = () => {
     const { pathname } = location;
     if (pathname.startsWith('/article')) return ['/article', pathname];
+    if (pathname.startsWith('/game')) return ['/game', pathname];
     return [pathname];
+  };
+
+  const getOpenKeys = () => {
+    const { pathname } = location;
+    const keys = [];
+    if (pathname.startsWith('/article')) keys.push('/article');
+    if (pathname.startsWith('/game')) keys.push('/game');
+    return keys;
   };
 
   const themeConfig = {
@@ -175,7 +192,7 @@ const MainLayout: React.FC = () => {
           <Menu
             mode="inline"
             selectedKeys={getActiveKey()}
-            defaultOpenKeys={location.pathname.startsWith('/article') ? ['/article'] : []}
+            defaultOpenKeys={getOpenKeys()}
             items={menuItems}
             onClick={({ key }) => history.push(key)}
             className="color-block-menu"

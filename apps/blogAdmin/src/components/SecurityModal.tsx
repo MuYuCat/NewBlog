@@ -8,14 +8,11 @@ import {
   Avatar,
   Typography,
   Space,
-  Badge,
-  Divider,
   Tooltip,
   Spin,
 } from 'antd';
 import {
   UserOutlined,
-  LockOutlined,
   SafetyCertificateOutlined,
   EyeOutlined,
   EyeInvisibleOutlined,
@@ -135,7 +132,8 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ visible, avatar, onCancel
       await setInitialState((s: any) => ({ ...s, currentUser: updatedUser }));
       message.success('档案信息已同步更新');
       setMode('view');
-    } catch (e) {
+    } catch {
+      // 验证失败或请求中断，不执行额外操作
     } finally {
       setLoading(false);
     }
@@ -158,7 +156,8 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ visible, avatar, onCancel
         ...s,
         currentUser: { ...user!, isTwoFactorEnabled: true },
       }));
-    } catch (e) {
+    } catch {
+      // 验证失败或请求中断
     } finally {
       setLoading(false);
     }
@@ -179,7 +178,8 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ visible, avatar, onCancel
         ...s,
         currentUser: { ...user!, isTwoFactorEnabled: false },
       }));
-    } catch (e) {
+    } catch {
+      // 验证失败或请求中断
     } finally {
       setLoading(false);
     }

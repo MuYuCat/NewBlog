@@ -15,8 +15,8 @@ model User {
   avatar             String?
   role               String     @default("USER")
   status             Int        @default(1)
-  twoFactorSecret    String?    // TOTP 密钥
-  isTwoFactorEnabled Boolean    @default(false) // 是否启用 2FA
+  twoFactorSecret    String?    
+  isTwoFactorEnabled Boolean    @default(false)
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
   bookmarks          Bookmark[]
@@ -25,20 +25,70 @@ model User {
   media              Media[]
 }
 
-model Game {
-  id         Int       @id @default(autoincrement())
-  platform   String
-  platformId String
-  title      String
-  coverUrl   String?
-  playTime   Int       @default(0)
-  achieved   Int       @default(0)
-  total      Int       @default(0)
-  lastPlayed DateTime?
-  syncAt     DateTime  @default(now())
+// --- 游戏轨迹核心模型 ---
 
-  @@unique([platform, platformId])
+// Master Game: 跨平台聚合的主实体
+model Game {
+  id          Int      @id @default(autoincrement())
+  title       String   // 统一显示标题
+  igdbId      String?  @unique // IGDB 唯一标识，用于跨平台自动匹配
+  summary     String?  @db.Text
+  coverUrl    String?  // 高清封面
+  rating      Float?   // 个人评分
+  review      String?  @db.LongText // 深度评测协议
+  
+  platforms   GamePlatform[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
+
+// Game Platform: 具体的游玩平台实体
+model GamePlatform {
+  id          Int      @id @default(autoincrement())
+  gameId      Int
+  platform    String   // PS5, Steam, Switch, PC
+  externalId  String   // 平台方 ID (如 NPWR, AppID)
+  playTime    Int      @default(0) // 累计时长 (分钟)
+  progress    Int      @default(0) // 进度 (0-100)
+  status      Int      @default(1) // 1:想玩, 2:在玩, 3:通关, 4:白金/全成就, 5:搁置
+  lastPlayed  DateTime?
+  syncAt      DateTime @default(now())
+
+  game        Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  achievements GameAchievement[]
+
+  @@unique([platform, externalId])
+  @@index([gameId])
+}
+
+// Game Achievement: 成就/奖杯详情
+model GameAchievement {
+  id          Int      @id @default(autoincrement())
+  platformId  Int
+  name        String
+  description String?  @db.Text
+  image       String?
+  rarity      String?  // Platinum, Gold, Silver, Bronze
+  isEarned    Boolean  @default(false)
+  earnedAt    DateTime?
+
+  platform    GamePlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  @@index([platformId])
+}
+
+// Game Sync Config: 敏感同步配置与健康状态
+model GameSyncConfig {
+  id          Int      @id @default(autoincrement())
+  platform    String   @unique // Steam, PSN, GLOBAL_SYNC_STATE
+  config      Json?    // 平台特有配置
+  lastSyncAt  DateTime?
+  status      Int      @default(1) // 1: 健康, 0: 异常, 2: 同步中, 3: 风险警告
+  errorMessage String?  @db.Text   // 最近一次报错简述
+  lastErrorLog Json?               // 详细错误回溯
+  updatedAt   DateTime @updatedAt
+}
+
+// --- 现有其他模型保持不变 ---
 
 model Doc {
   id        Int      @id @default(autoincrement())
@@ -62,7 +112,7 @@ model Category {
   id        Int       @id @default(autoincrement())
   name      String    @unique
   slug      String    @unique
-  type      Int       @default(1) // 1: 大众 (PUBLIC), 2: 心语 (WHISPER)
+  type      Int       @default(1) 
   order     Int       @default(0)
   articles  Article[] @relation("ArticleCategories")
   createdAt DateTime  @default(now())
@@ -71,21 +121,19 @@ model Category {
 
 model Article {
   id          Int      @id @default(autoincrement())
-  title       String?  // 碎碎念可无标题
-  content     String   @db.LongText // HTML 内容
-  jsonContent Json?    // TipTap 结构化 JSON 内容
+  title       String?  
+  content     String   @db.LongText 
+  jsonContent Json?    
   summary     String?  @db.Text
   coverUrl    String?
-  mood        String?  // 仅 JOURNAL 使用
-  location    String?  // 仅 JOURNAL 使用
+  mood        String?  
+  location    String?  
   clicks      Int      @default(0)
-  status      Int      @default(1) // 0:草稿, 1:发布, 2:私密
+  status      Int      @default(1) 
   
   authorId    Int
   author      User     @relation(fields: [authorId], references: [id])
-  
   categories  Category[] @relation("ArticleCategories")
-  
   tags        Tag[]    @relation("ArticleTags")
   media       Media[]
   
@@ -98,14 +146,12 @@ model Article {
 model Media {
   id        Int      @id @default(autoincrement())
   fileName  String
-  fileType  String   // image/webp, image/jpeg, etc.
-  size      Int      // 字节大小
-  url       String   @unique // 访问 URL
-  path      String   // 物理路径
-  
-  articleId Int?     // 归属于哪篇文章
+  fileType  String   
+  size      Int      
+  url       String   @unique 
+  path      String   
+  articleId Int?     
   article   Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
-  
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
@@ -117,7 +163,7 @@ model Media {
 model Tag {
   id        Int        @id @default(autoincrement())
   name      String     @unique
-  color     String?    // 预设颜色值
+  color     String?    
   bookmarks Bookmark[] @relation("BookmarkTags")
   articles  Article[]  @relation("ArticleTags")
   createdAt DateTime   @default(now())
@@ -131,7 +177,7 @@ model Bookmark {
   description String?  @db.Text
   coverUrl    String?
   userId      Int
-  clicks      Int      @default(0) // 点击量/热度
+  clicks      Int      @default(0) 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   user        User     @relation(fields: [userId], references: [id])
@@ -142,14 +188,14 @@ model Bookmark {
 
 model Menu {
   id        Int      @id @default(autoincrement())
-  name      String   // 菜单显示名称
-  path      String   // 路由路径或外部 URL
-  icon      String?  // 图标标识符
-  i18nKey   String?  // 国际化 Key
-  order     Int      @default(0) // 排序
-  status    Int      @default(1) // 1: 启用, 0: 禁用
-  parentId  Int?     // 父级 ID
-  type      Int      @default(1) // 1: 内部路由, 2: 外部链接
+  name      String   
+  path      String   
+  icon      String?  
+  i18nKey   String?  
+  order     Int      @default(0) 
+  status    Int      @default(1) 
+  parentId  Int?     
+  type      Int      @default(1) 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -161,17 +207,17 @@ model Menu {
 
 model AuditLog {
   id         Int      @id @default(autoincrement())
-  logType    String   @default("API") // PAGE_WEB, PAGE_ADMIN, API
-  method     String   // GET, POST, etc.
-  path       String   // 请求路径
-  status     Int      // 响应状态码
-  ip         String   // 访问者 IP
-  location   String?  // 地理位置
-  duration   Int      // 耗时 (ms)
+  logType    String   @default("API") 
+  method     String   
+  path       String   
+  status     Int      
+  ip         String   
+  location   String?  
+  duration   Int      
   userAgent  String?  @db.Text
-  body       Json?    // 请求体
-  query      Json?    // 查询参数
-  userId     Int?     // 操作人 ID (可选)
+  body       Json?    
+  query      Json?    
+  userId     Int?     
   createdAt  DateTime @default(now())
 
   @@index([logType])

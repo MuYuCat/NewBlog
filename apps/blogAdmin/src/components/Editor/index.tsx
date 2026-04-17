@@ -5,7 +5,6 @@ import highlight from '@bytemd/plugin-highlight';
 import breaks from '@bytemd/plugin-breaks';
 import * as mammoth from 'mammoth';
 import TurndownService from 'turndown';
-import { FileWordOutlined } from '@ant-design/icons';
 import 'bytemd/dist/index.css';
 import 'highlight.js/styles/github.css';
 import './index.scss';
@@ -23,18 +22,148 @@ const turndownService = new TurndownService({
   codeBlockStyle: 'fenced',
 });
 
+// 核心功能：清洗 Word 粘贴过来的脏 HTML
+const cleanWordHtml = (html: string): string => {
+  // 1. 暴力正则清洗：移除所有的 <style>, <meta>, <link>, 以及 Word 的 XML 条件注释
+  const cleaned = html
+    .replace(/<style[\s\S]*?<\/style>/gi, '') // 移除整个 style 块
+    .replace(/<meta[\s\S]*?>/gi, '') // 移除 meta 标签
+    .replace(/<link[\s\S]*?>/gi, '') // 移除 link 标签
+    .replace(/<!--[\s\S]*?-->/g, '') // 移除所有注释 (包括 Word 的 XML 元数据)
+    .replace(/<![\s\S]*?>/g, ''); // 移除所有 DTD 声明
+
+  const container = document.createElement('div');
+  container.innerHTML = cleaned;
+
+  // 2. 识别并转换 Word 特有的标题类名
+  const headings = container.querySelectorAll('[class^="MsoHeading"], [style*="font-weight:bold"]');
+  headings.forEach((el) => {
+    const className = el.className || '';
+    const style = (el as HTMLElement).style.fontSize || '';
+
+    let level = 0;
+    if (className.includes('Heading1')) level = 1;
+    else if (className.includes('Heading2')) level = 2;
+    else if (className.includes('Heading3')) level = 3;
+    else if (style.includes('pt')) {
+      const pt = parseFloat(style);
+      if (pt >= 20) level = 1;
+      else if (pt >= 16) level = 2;
+      else if (pt >= 14) level = 3;
+    }
+
+    if (level > 0) {
+      const h = document.createElement(`h${level}`);
+      h.innerHTML = el.innerHTML;
+      el.parentNode?.replaceChild(h, el);
+    }
+  });
+
+  // 3. 移除残留的类名和 Mso 开头的内联样式，保持 HTML 纯净
+  const allElements = container.querySelectorAll('*');
+  allElements.forEach((el) => {
+    el.removeAttribute('class');
+    const styleAttr = el.getAttribute('style') || '';
+    if (styleAttr.toLowerCase().includes('mso-')) {
+      el.removeAttribute('style');
+    }
+  });
+
+  return container.innerHTML;
+};
+
 const UniversalEditor: React.FC<Props> = ({ value, onChange }) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const valueRef = React.useRef(value);
+  const onChangeRef = React.useRef(onChange);
+
+  // 同步 Ref，确保监听器内能拿到最新状态
+  React.useEffect(() => {
+    valueRef.current = value;
+    onChangeRef.current = onChange;
+  }, [value, onChange]);
+
   // 核心转换逻辑：Docx ArrayBuffer -> Markdown
   const convertDocxToMarkdown = async (arrayBuffer: ArrayBuffer): Promise<string> => {
     try {
-      const result = await mammoth.convertToHtml({ arrayBuffer });
-      const html = result.value; // 转换后的 HTML
+      const result = await mammoth.convertToHtml({
+        arrayBuffer,
+        styleMap: [
+          "p[style-name='Heading 1'] => h1:fresh",
+          "p[style-name='Heading 2'] => h2:fresh",
+          "p[style-name='Heading 3'] => h3:fresh",
+        ],
+      });
+      const html = result.value;
       return turndownService.turndown(html);
     } catch (error) {
       console.error('Word 协议解析失败:', error);
       throw error;
     }
   };
+
+  // 拦截粘贴事件 (使用捕获模式优先于编辑器执行)
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const handleCapturePaste = async (e: ClipboardEvent) => {
+      const clipboardData = e.clipboardData;
+      if (!clipboardData) return;
+
+      const types = clipboardData.types;
+      const html = clipboardData.getData('text/html');
+
+      // 判定是否为 Word 内容 (基于典型标识符)
+      const isWord =
+        html.includes('MsoNormal') ||
+        html.includes('word-specific') ||
+        html.includes('font-family');
+
+      if (isWord && types.includes('text/html')) {
+        // 1. 立即停止一切后续行为（阻止 ByteMD 的默认粘贴）
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        console.log('[Elite Editor] 检测到 Word 协议，启动深度清洗...');
+        const cleanedHtml = cleanWordHtml(html);
+        const markdown = turndownService.turndown(cleanedHtml);
+
+        // 2. 更新内容 (追加到末尾)
+        const currentValue = valueRef.current;
+        onChangeRef.current(currentValue ? `${currentValue}\n\n${markdown}` : markdown);
+        return;
+      }
+
+      // 处理 Word 文件粘贴 (.docx 实体直接粘贴)
+      const fileItem = Array.from(clipboardData.items).find(
+        (item) =>
+          item.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      );
+
+      if (fileItem) {
+        const file = fileItem.getAsFile();
+        if (file) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+
+          const reader = new FileReader();
+          reader.onload = async (event) => {
+            const buffer = event.target?.result as ArrayBuffer;
+            const markdown = await convertDocxToMarkdown(buffer);
+            const currentValue = valueRef.current;
+            onChangeRef.current(currentValue ? `${currentValue}\n\n${markdown}` : markdown);
+          };
+          reader.readAsArrayBuffer(file);
+        }
+      }
+    };
+
+    el.addEventListener('paste', handleCapturePaste, true);
+    return () => el.removeEventListener('paste', handleCapturePaste, true);
+  }, []);
 
   // 自定义 Word 导入插件
   const wordImportPlugin = () => {
@@ -54,7 +183,8 @@ const UniversalEditor: React.FC<Props> = ({ value, onChange }) => {
                 reader.onload = async (event) => {
                   const buffer = event.target?.result as ArrayBuffer;
                   const markdown = await convertDocxToMarkdown(buffer);
-                  onChange(value ? `${value}\n\n${markdown}` : markdown);
+                  const currentValue = valueRef.current;
+                  onChangeRef.current(currentValue ? `${currentValue}\n\n${markdown}` : markdown);
                 };
                 reader.readAsArrayBuffer(file);
               }
@@ -68,31 +198,8 @@ const UniversalEditor: React.FC<Props> = ({ value, onChange }) => {
 
   const plugins = [gfm(), highlight(), breaks(), wordImportPlugin()];
 
-  // 拦截 Word 粘贴并转换
-  const handlePaste = async (e: React.ClipboardEvent) => {
-    const items = e.clipboardData.items;
-
-    for (let i = 0; i < items.length; i++) {
-      if (
-        items[i].type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      ) {
-        const file = items[i].getAsFile();
-        if (file) {
-          e.preventDefault();
-          const reader = new FileReader();
-          reader.onload = async (event) => {
-            const buffer = event.target?.result as ArrayBuffer;
-            const markdown = await convertDocxToMarkdown(buffer);
-            onChange(value ? `${value}\n\n${markdown}` : markdown);
-          };
-          reader.readAsArrayBuffer(file);
-        }
-      }
-    }
-  };
-
   return (
-    <div className="universal-editor-wrapper" onPaste={handlePaste}>
+    <div className="universal-editor-wrapper" ref={containerRef}>
       <Editor
         value={value}
         plugins={plugins}

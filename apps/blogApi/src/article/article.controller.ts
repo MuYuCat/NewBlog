@@ -48,7 +48,7 @@ export class ArticleController {
           secret: process.env.JWT_SECRET || 'muyucat-default-secret-key-2026',
         });
         isAdmin = !!payload;
-      } catch (e) {
+      } catch {
         isAdmin = false;
       }
     }
@@ -75,8 +75,15 @@ export class ArticleController {
   }
 
   @Patch(':id/click')
-  click(@Param('id', ParseIntPipe) id: number) {
-    return this.articleService.incrementClicks(id);
+  click(@Req() req, @Param('id', ParseIntPipe) id: number) {
+    const ip =
+      (req.headers['x-forwarded-for'] as string) ||
+      req.socket.remoteAddress ||
+      req.ip ||
+      'unknown';
+    const ua = req.headers['user-agent'] || 'unknown';
+
+    return this.articleService.incrementClicks(id, { ip, ua });
   }
 
   @Post()

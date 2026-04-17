@@ -57,9 +57,36 @@ export default defineConfig({
     },
     {
       path: '/game',
-      component: './game',
       name: '游戏管理',
       icon: 'playSquare',
+      routes: [
+        {
+          path: '/game',
+          redirect: '/game/index',
+        },
+        {
+          path: '/game/index',
+          component: './game',
+          name: '档案中心',
+        },
+        {
+          path: '/game/edit',
+          component: './game/edit',
+          name: '入库中心',
+          hideInMenu: true,
+        },
+        {
+          path: '/game/edit/:id',
+          component: './game/edit',
+          name: '档案实验室',
+          hideInMenu: true,
+        },
+        {
+          path: '/game/config',
+          component: './game/config',
+          name: '同步指挥塔',
+        },
+      ],
     },
     {
       path: '/article',

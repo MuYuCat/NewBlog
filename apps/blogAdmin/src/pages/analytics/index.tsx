@@ -16,7 +16,6 @@ import {
   ReloadOutlined,
   CloseOutlined,
   ExportOutlined,
-  FilterOutlined,
   CheckCircleOutlined,
   ClusterOutlined,
 } from '@ant-design/icons';
@@ -25,7 +24,7 @@ import { gsap } from 'gsap';
 import dayjs from 'dayjs';
 import './index.scss';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
@@ -79,7 +78,7 @@ const AnalyticsPage: React.FC = () => {
       const res = await request('/analytics/logs', { params });
       setLogs(res.items || []);
       setTotal(res.total || 0);
-    } catch (e) {
+    } catch {
       message.error('信号同步中断');
     } finally {
       setLoading(false);
@@ -104,7 +103,6 @@ const AnalyticsPage: React.FC = () => {
         params.endTime = dateRange[1].toISOString();
       }
 
-      // 关键：指定 responseType 为 blob，且必须等待后端完成流式写入
       const res = await request('/analytics/export', {
         params,
         responseType: 'blob',
@@ -118,7 +116,7 @@ const AnalyticsPage: React.FC = () => {
       link.click();
       link.parentNode?.removeChild(link);
       message.success('航行日志已下载至本地');
-    } catch (e) {
+    } catch {
       message.error('数据提取链路异常，请重试');
     } finally {
       hide();
